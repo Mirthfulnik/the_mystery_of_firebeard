@@ -51,7 +51,7 @@ body.host { overflow: hidden; font-size: 2.4vh; }
 .panel .body p { margin: 0; }
 .panel .body.big p { font-family: var(--display); font-size: 4.2vh; line-height: 1.25; }
 .panel ul { margin: 0; padding-left: 2.6vh; }
-.panel li { margin: 0 0 .9vh; font-size: 2.55vh; line-height: 1.4; }
+.panel li { margin: 0 0 .9vh; font-size: .93em; line-height: 1.4; }
 .panel .hint { margin: 0; font-size: 2.2vh; color: #6b4d2a; font-style: italic; }
 .panel .btn { align-self: flex-start; font-size: 2.6vh; }
 
@@ -114,14 +114,17 @@ body.host { overflow: hidden; font-size: 2.4vh; }
 
 /* Рассказчики — круглые аватарки */
 .speakers { display: flex; gap: 2.4vh; justify-content: center; flex-wrap: wrap; }
-.sp { width: 19vh; text-align: center; opacity: .55; transition: transform .3s, opacity .3s; }
+.sp { width: 19vh; text-align: center; transition: transform .3s; }
+.sp img { transition: filter .3s; }
+.sp:not(.now):not(.done) img { filter: grayscale(.55) brightness(.6); }
+.sp:not(.now):not(.done) .nm { color: var(--muted); }
 .sp img { width: 17vh; height: 17vh; border-radius: 50%; margin: 0 auto; border: .5vh solid rgba(233, 230, 245, .3); box-shadow: 0 1vh 2.5vh rgba(0, 0, 0, .6); }
 .sp .nm { font-family: var(--display); font-size: 2.6vh; margin-top: 1vh; }
 .sp .rl { font-size: 1.8vh; color: var(--muted); line-height: 1.2; }
 .sp.now { opacity: 1; transform: scale(1.12); }
 .sp.now img { border-color: var(--ghost); box-shadow: 0 0 3vh rgba(124, 245, 138, .6); }
 .sp.now .nm { color: var(--ghost); }
-.sp.done { opacity: .85; }
+.sp.done img { filter: brightness(.85); }
 .sp.done .nm::after { content: ' ✓'; color: var(--ghost); }
 
 /* Улики на столе */

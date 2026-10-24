@@ -372,8 +372,19 @@ function render() {
   const panel = panelHTML(G.narrative(state), panelExtra());
   const html = `<div class="left">${left}</div><aside class="panel">${panel}<div class="clock" id="clock" hidden></div></aside>` + (revealShowing ? revealHTML(revealShowing) : '');
   if (html !== lastHTML) { $('#screen').innerHTML = html; lastHTML = html; }
+  fitPanel();
   renderDock();
   renderClock();
+}
+
+// Длинный текст уменьшается, чтобы целиком влезть в панель
+function fitPanel() {
+  const p = document.querySelector('.panel');
+  const body = p && p.querySelector('.body');
+  if (!body) return;
+  let s = 1;
+  body.style.fontSize = '';
+  while (p.scrollHeight > p.clientHeight + 1 && s > 0.62) { s -= 0.04; body.style.fontSize = (2.75 * s) + 'vh'; }
 }
 
 function renderDock() {

@@ -242,3 +242,5 @@ body.gmmode main { padding-bottom: 190px; }
 .plist li div { flex: 1; }
 .plist b { display: block; }
 .plist span { color: var(--muted); font-size: 14px; }
+
+.plist .ib { background: none; border: 1px solid rgba(233, 230, 245, .3); color: var(--text); border-radius: 16px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
