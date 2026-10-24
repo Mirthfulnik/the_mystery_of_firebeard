@@ -311,7 +311,7 @@ export function narrative(state) {
       const P = PROLOGUE[s.i];
       return { kicker: 'Пролог', title: P.title || '', text: P.text || '', list: P.list || null, big: !!P.big };
     }
-    case 'inspect': return { kicker: 'Улики', title: 'Осмотр места преступления', text: 'Откройте вкладку «Осмотр» в телефоне и нажимайте на светящиеся предметы. Новые места откроются по ходу вечера.' };
+    case 'inspect': return { kicker: 'Улики', title: 'Осмотр места преступления', text: 'Откройте вкладку «Осмотр» в телефоне и нажимайте на всё, что кажется подозрительным. Новые места откроются по ходу вечера.' };
     case 'r-intro': { const R = ROUNDS[s.r - 1]; return { kicker: `Раунд ${R.n} из 5 · ${R.time}`, title: R.title, text: R.intro }; }
     case 'r-cards': {
       const R = ROUNDS[s.r - 1];

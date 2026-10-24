@@ -140,14 +140,10 @@ details.past .env { margin-top: 10px; }
 .scene img { width: 100%; }
 .hot {
   position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
-  border: 3px solid rgba(124, 245, 138, .85);
-  background: rgba(124, 245, 138, .08);
-  cursor: pointer; padding: 0;
-  animation: glow 2.4s ease-in-out infinite;
+  border: 0; background: transparent; cursor: pointer; padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
-.hot.seen { border-color: rgba(233, 230, 245, .45); background: transparent; animation: none; }
-.hot.seen::after { content: '✓'; position: absolute; right: -2px; top: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--deep); color: var(--ghost); font-size: 14px; line-height: 22px; text-align: center; }
-@keyframes glow { 50% { box-shadow: 0 0 18px rgba(124, 245, 138, .7); } }
+.hot:focus-visible { outline: 2px dashed rgba(233, 230, 245, .5); }
 .scene-hint { font-size: 14px; color: var(--muted); margin: 10px 2px 0; }
 
 /* Нижний лист */

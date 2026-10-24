@@ -181,7 +181,7 @@ function cardTabHTML() {
   }
   const decs = (v.decisions || []).map(decisionHTML).join('');
   if (!cards.length) {
-    const wait = { prologue: 'Смотрите на экран: начинается история.', inspect: 'Откройте вкладку «Осмотр» и изучите место преступления.', 'r-intro': 'Слушайте вступление.' };
+    const wait = { prologue: 'Смотрите на экран: начинается история.', inspect: 'Откройте вкладку «Осмотр» и обыщите место преступления.', 'r-intro': 'Слушайте вступление.' };
     return top + `<div class="msg"><h2>${ph === 'inspect' ? 'Осмотр' : 'Смотрите на экран'}</h2><p>${wait[ph] || 'Скоро здесь появится ваша первая карточка.'}</p>
       ${ph === 'inspect' ? '<button class="btn" data-tab="zones">Открыть осмотр</button>' : ''}</div>`;
   }
@@ -204,7 +204,7 @@ function zonesHTML() {
   const hots = z.items.map(it => `<button class="hot ${seen[sk(z, it)] ? 'seen' : ''}" style="left:${it.x}%;top:${it.y}%;width:${it.r * 2}%;aspect-ratio:1" data-item="${it.id}" aria-label="${esc(it.name)}"></button>`).join('');
   return `<div class="chips" role="group" aria-label="Места">${chips}</div>
     <div class="scene"><img src="${IMG(z.img)}" alt="${esc(z.name)}">${hots}</div>
-    <p class="scene-hint">Нажимайте на светящиеся круги. Предметы видят все игроки — обсуждайте находки вслух.</p>`;
+    <p class="scene-hint">Ищите улики сами: нажимайте на всё, что кажется подозрительным. Находки видят все игроки — обсуждайте их вслух.</p>`;
 }
 
 function voteHTML() {
