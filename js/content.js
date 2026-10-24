@@ -4,12 +4,6 @@
 
 export const ROLE_IDS = ['butler', 'captain', 'cook', 'agata', 'toby'];
 
-export const ROLES_BY_COUNT = {
-  3: ['butler', 'captain', 'cook'],
-  4: ['butler', 'captain', 'cook', 'agata'],
-  5: ['butler', 'captain', 'cook', 'agata', 'toby'],
-};
-
 export const GUILTY = 'cook';
 
 export const ROLES = {
