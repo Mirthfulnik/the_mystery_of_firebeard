@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Призрак Огнеборода</title>
+<meta name="description" content="Хэллоуинский детектив для компании: экран ведущего.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎃</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/host.css">
+<link rel="preload" as="image" href="img/bg/UI-02.webp">
+</head>
+<body class="host">
+<div class="stage">
+  <div id="bgs"></div>
+  <div class="vignette"></div>
+  <div class="fog"></div>
+  <div class="topbar" id="top"></div>
+  <div class="clock" id="clock" hidden></div>
+  <main id="screen"></main>
+  <nav class="dock" id="dock" aria-label="Управление игрой"></nav>
+</div>
+<script src="vendor/peerjs.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script type="module" src="js/host.js"></script>
+</body>
+</html>

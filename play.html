@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a26">
+<title>Призрак Огнеборода — игрок</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎃</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/player.css">
+</head>
+<body class="player">
+<div class="app">
+  <header class="bar" id="bar" hidden></header>
+  <main id="main"></main>
+</div>
+<nav class="tabs" id="tabs" role="tablist" hidden></nav>
+<div id="sheet" hidden></div>
+<div class="cover" id="cover" data-act="uncover" hidden>
+  <div class="moon"></div>
+  <p>Экран скрыт от любопытных глаз.<br>Нажмите, чтобы вернуться.</p>
+</div>
+<div class="toast" id="toast" hidden style="position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:70;background:var(--night);border:1px solid var(--ghost);padding:8px 16px;border-radius:18px;font-size:15px;max-width:90vw;text-align:center"></div>
+<script src="vendor/peerjs.min.js"></script>
+<script type="module" src="js/player.js"></script>
+</body>
+</html>
