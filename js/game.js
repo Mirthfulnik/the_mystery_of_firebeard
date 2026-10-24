@@ -16,14 +16,17 @@ export function buildSteps() {
   s.push({ id: 'roles' });
   for (let i = 0; i < CAST.length + ROLE_IDS.length; i++) s.push({ id: 'cast', i });
   PROLOGUE.forEach((_, i) => s.push({ id: 'prologue', i }));
-  s.push({ id: 'inspect', timer: TIMERS.inspect });
+  s.push({ id: 'inspect', zones: ['deck', 'cabin'], timer: TIMERS.inspect });
   for (const r of ROUNDS) {
     s.push({ id: 'r-intro', r: r.n });
     s.push({ id: 'r-cards', r: r.n });
+    const z = ZONES.find(zz => zz.unlock === 'round' + r.n);
+    if (z) s.push({ id: 'inspect', r: r.n, zone: z.id, timer: TIMERS.inspectRound });
     s.push({ id: 'r-discuss', r: r.n, timer: TIMERS.discuss });
   }
   s.push({ id: 'm-intro' });
   s.push({ id: 'm-cards' });
+  s.push({ id: 'inspect', m: true, zone: 'galley', timer: TIMERS.inspectRound });
   s.push({ id: 'm-discuss', timer: TIMERS.midnightDiscuss });
   s.push({ id: 'vote', timer: TIMERS.vote });
   s.push({ id: 'votes' });
@@ -168,9 +171,10 @@ export function zonesOpen(state) {
   for (const z of ZONES) {
     let ok = false;
     if (z.unlock === 'prologue') ok = i >= idxOf('inspect');
-    if (z.unlock === 'round3') ok = i >= idxOf('r-intro', { r: 3 });
-    if (z.unlock === 'round5') ok = i >= idxOf('r-intro', { r: 5 }) || state.decisions.D1 === true;
-    if (z.unlock === 'midnight') ok = i >= idxOf('m-discuss') || state.decisions.D5 !== undefined;
+    else {
+      const at = STEPS.findIndex(s => s.id === 'inspect' && s.zone === z.id);
+      ok = i >= at || (z.id === 'hold' && state.decisions.D1 === true);
+    }
     if (ok) open.push(z.id);
   }
   return open;
@@ -196,7 +200,8 @@ export function decisionOpen(state, d) {
   if (state.decisions[d] === true) return false;
   if (state.decisions[d] === false && !D.retry) return false;
   const start = D.from === 'midnight' ? idxOf('m-cards') : idxOf('r-cards', { r: D.from });
-  return state.step >= start && state.step <= idxOf('vote');
+  const end = D.until ? idxOf(D.until) : idxOf('vote');
+  return state.step >= start && state.step <= end;
 }
 
 export function decide(state, key, d, yes) {
@@ -311,7 +316,16 @@ export function narrative(state) {
       const P = PROLOGUE[s.i];
       return { kicker: 'Пролог', title: P.title || '', text: P.text || '', list: P.list || null, big: !!P.big };
     }
-    case 'inspect': return { kicker: 'Улики', title: 'Осмотр места преступления', text: 'Откройте вкладку «Осмотр» в телефоне и нажимайте на всё, что кажется подозрительным. Новые места откроются по ходу вечера.' };
+    case 'inspect': {
+      if (!s.zone) return { kicker: 'Улики', title: 'Осмотр места преступления', text: 'Откройте вкладку «Осмотр» в телефоне и обыщите палубу и капитанскую каюту. Нажимайте на всё, что кажется подозрительным. Новые места будут открываться по ходу вечера.' };
+      const Z = ZONES.find(z => z.id === s.zone);
+      return {
+        kicker: s.m ? 'Полночь · осмотр' : `Раунд ${s.r} · осмотр`,
+        title: `Открыто новое место: ${Z.name}`,
+        text: `Откройте вкладку «Осмотр» в телефоне и обыщите ${Z.acc || Z.name.toLowerCase()}. После осмотра — обсуждение.`,
+        hint: 'Можно заново осматривать и прежние места.',
+      };
+    }
     case 'r-intro': { const R = ROUNDS[s.r - 1]; return { kicker: `Раунд ${R.n} из 5 · ${R.time}`, title: R.title, text: R.intro }; }
     case 'r-cards': {
       const R = ROUNDS[s.r - 1];
@@ -349,7 +363,7 @@ export function narrative(state) {
 export function stepLabel(state) {
   const s = cur(state);
   const L = {
-    lobby: 'Сбор гостей', roles: 'Раздача ролей', cast: 'Знакомство', prologue: 'Пролог', inspect: 'Осмотр',
+    lobby: 'Сбор гостей', roles: 'Раздача ролей', cast: 'Знакомство', prologue: 'Пролог', inspect: s.zone ? (s.m ? 'Полночь: осмотр' : `Раунд ${s.r}: осмотр`) : 'Осмотр',
     'r-intro': `Раунд ${s.r}: вступление`, 'r-cards': `Раунд ${s.r}: рассказы`, 'r-discuss': `Раунд ${s.r}: обсуждение`,
     'm-intro': 'Полночь', 'm-cards': 'Полночь: карточки', 'm-discuss': 'Полночь: обсуждение',
     vote: 'Голосование', votes: 'Голоса', verdict: 'Вердикт', epi: 'Эпилог', scores: 'Итоги',
@@ -367,6 +381,7 @@ export function viewFor(state, key) {
     step: state.step,
     phase: s.id,
     r: s.r || null,
+    focusZone: s.zone || null,
     label: stepLabel(state),
     players: state.players.map(pp => ({ name: pp.name })),
     timer: state.timer ? timerLeft(state.timer) : null,

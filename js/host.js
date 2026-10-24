@@ -321,11 +321,12 @@ function leftHTML() {
 
 function zonesHTML() {
   const open = G.zonesOpen(state);
-  const unl = { prologue: 'открыта', round3: 'после раунда 2', round5: 'после раунда 4', midnight: 'в полночь' };
+  const unl = { prologue: 'открыта', round2: 'в раунде 2', round4: 'в раунде 4', midnight: 'в полночь' };
+  const focus = G.cur(state).zone;
   return `<div class="zones">${ZONES.map(z => {
     const o = open.includes(z.id);
     const img = state.decisions.D5 === true && z.imgNoJar ? z.imgNoJar : z.img;
-    return `<div class="zone ${o ? '' : 'locked'}"><div class="im" style="background-image:url('${IMG(img)}')"></div><div class="nm">${esc(z.name)}</div><div class="st">${o ? 'можно осматривать' : unl[z.unlock]}</div></div>`;
+    return `<div class="zone ${o ? '' : 'locked'} ${z.id === focus ? 'focus' : ''}"><div class="im" style="background-image:url('${IMG(img)}')"></div><div class="nm">${esc(z.name)}</div><div class="st">${o ? 'можно осматривать' : unl[z.unlock]}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -336,7 +337,7 @@ function sceneFor() {
     case 'roles': return ['UI-02', false];
     case 'cast': return ['BG-02', true];
     case 'prologue': return [PROLOGUE[s.i].bg, false];
-    case 'inspect': return ['BG-07', true];
+    case 'inspect': return s.zone ? (s.m ? ['BG-07', true] : [ROUNDS[s.r - 1].bg, true]) : ['BG-07', true];
     case 'r-intro': return [ROUNDS[s.r - 1].bg, false];
     case 'r-cards': case 'r-discuss': return [ROUNDS[s.r - 1].bg, true];
     case 'm-intro': return ['BG-07', false];

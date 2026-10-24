@@ -207,3 +207,7 @@ body.host { overflow: hidden; font-size: 2.4vh; }
 }
 .panel .btn.ghost { color: var(--ink); border-color: rgba(43, 27, 14, .45); background: rgba(43, 27, 14, .06); }
 .panel .btn.ghost:hover { background: rgba(43, 27, 14, .12); }
+
+.zone.focus .im { border-color: var(--pumpkin); box-shadow: 0 0 3vh rgba(240, 138, 36, .7); }
+.zone.focus { transform: scale(1.08); }
+.zone.focus .nm { color: var(--pumpkin); }

@@ -63,7 +63,7 @@ function notice(prev, v) {
     if (sig.dec > lastSig.dec || sig.wh > lastSig.wh) { newTabs.card = true; buzz([150, 60, 150]); }
     if (sig.turn && !lastSig.turn) { buzz(250); tab = 'card'; }
     if (sig.phase !== lastSig.phase) {
-      if (sig.phase === 'inspect') tab = 'zones';
+      if (sig.phase === 'inspect') { tab = 'zones'; if (v.focusZone) zoneSel = v.focusZone; }
       if (['vote', 'verdict', 'roles'].includes(sig.phase)) tab = 'card';
     }
   }
@@ -178,6 +178,10 @@ function cardTabHTML() {
   if (ph === 'r-cards') {
     if (v.myTurn) top += `<div class="banner turn"><b>Ваша очередь рассказывать</b>Перескажите своими словами часть «Расскажите всем». Тайную — по желанию.<button class="btn" data-act="told">Я закончил рассказ</button></div>`;
     else if (v.told) top += `<div class="banner info">Вы уже рассказали. Слушайте остальных.</div>`;
+  }
+  if (ph === 'inspect' && cards.length) {
+    const fz = (v.zones || []).find(z => z.id === v.focusZone);
+    top += `<div class="banner turn"><b>Открыто новое место${fz ? ': ' + esc(fz.name) : ''}</b>Обыщите его до обсуждения.<button class="btn" data-tab="zones">Открыть осмотр</button></div>`;
   }
   const decs = (v.decisions || []).map(decisionHTML).join('');
   if (!cards.length) {

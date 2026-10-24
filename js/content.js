@@ -126,8 +126,9 @@ export const ZONES = [
   {
     id: 'saloon',
     name: 'Кают-компания',
+    acc: 'кают-компанию',
     img: 'SC-03',
-    unlock: 'round3',
+    unlock: 'round2',
     items: [
       { id: 'dome', name: 'Стеклянный колпак', x: 49, y: 39, r: 13, text: 'Пуст. Табличка: «Компас Огнеборода. Застрахован».' },
       { id: 'fork', name: 'Место хозяина', x: 33, y: 89, r: 9, sfx: 'SFX-10', text: 'Под стулом — упавшая вилка.' },
@@ -137,8 +138,9 @@ export const ZONES = [
   {
     id: 'hold',
     name: 'Трюм',
+    acc: 'трюм',
     img: 'SC-04',
-    unlock: 'round5',
+    unlock: 'round4',
     items: [
       { id: 'crates', name: 'Ящики', x: 44, y: 25, r: 17, text: 'Штамп «Альбатрос». Внутри шёлк и ром.' },
       { id: 'straw', name: 'Пустое место', x: 46, y: 55, r: 15, text: 'Между ящиками — вмятина в соломе по форме круглого футляра.' },
@@ -149,6 +151,7 @@ export const ZONES = [
   {
     id: 'galley',
     name: 'Камбуз',
+    acc: 'камбуз',
     img: 'SC-05a',
     imgNoJar: 'SC-05b',
     unlock: 'midnight',
@@ -406,6 +409,7 @@ export const DECISIONS = {
   D5: {
     role: 'cook',
     from: 'midnight',
+    until: 'm-cards',
     q: 'Пока все смотрят на тело, выбросить банку с заправкой за борт?',
     yes: 'На камбузе банки не будет, только чистый след на полке. Но капитан Хоук получит тайное сообщение.',
     no: 'Банка останется на полке.',
@@ -466,6 +470,7 @@ export const EPILOGUE = [
 // Таймеры по умолчанию, секунды.
 export const TIMERS = {
   inspect: 300,
+  inspectRound: 180,
   discuss: 420,
   midnightDiscuss: 600,
   vote: 180,
