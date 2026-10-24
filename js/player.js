@@ -54,7 +54,21 @@ function onMsg(m) {
   else if (m.t === 'hello?') send({ t: 'hello', name });
 }
 
+// Заранее скачиваем картинки, которые понадобятся этому телефону
+let warmed = false;
+function warmUp(v) {
+  if (warmed || !v.me || !v.me.role) return;
+  warmed = true;
+  const list = [IMG(v.me.portrait), 'img/sc/SC-01.webp', 'img/sc/SC-02.webp', 'img/sc/SC-03.webp', 'img/sc/SC-04.webp', 'img/sc/SC-05a.webp', 'img/sc/SC-05b.webp',
+    ...['CH-01', 'CH-02', 'CH-03', 'CH-04', 'CH-05'].map(FACE),
+    ...['EV-02', 'EV-04', 'EV-05', 'EV-06', 'EV-07', 'EV-08', 'EV-09', 'EV-10', 'EV-13', 'EV-14', 'EV-15', 'PAPER', 'CH-01b'].map(IMG)];
+  let i = 0;
+  const next = () => { if (i >= list.length) return; const im = new Image(); im.onload = im.onerror = () => setTimeout(next, 50); im.src = list[i++]; };
+  next(); next();
+}
+
 function notice(prev, v) {
+  warmUp(v);
   if (!v.me || !v.me.role) return;
   const sig = { cards: (v.cards || []).length, zones: (v.zones || []).length, dec: (v.decisions || []).filter(d => d.open && d.made === undefined).length, wh: (v.whispers || []).length, turn: !!v.myTurn, phase: v.phase };
   if (prev && prev.me && prev.me.role) {
@@ -263,6 +277,8 @@ document.addEventListener('submit', e => {
     name = $('#name').value.trim().slice(0, 20);
     if (!name) return;
     store.set('name', name);
+    audio.sfx('SFX-20');
+    audio.sfx('SFX-01', { delay: 1.2, variant: 'far', gain: 1.4 });
     joined = true;
     connect();
     send({ t: 'hello', name });

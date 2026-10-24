@@ -330,8 +330,7 @@ function zonesHTML() {
   }).join('')}</div>`;
 }
 
-function sceneFor() {
-  const s = G.cur(state);
+function sceneFor(s = G.cur(state)) {
   switch (s.id) {
     case 'lobby': return ['UI-02', true];
     case 'roles': return ['UI-02', false];
@@ -373,6 +372,7 @@ function render() {
   const panel = panelHTML(G.narrative(state), panelExtra());
   const html = `<div class="left">${left}</div><aside class="panel">${panel}<div class="clock" id="clock" hidden></div></aside>` + (revealShowing ? revealHTML(revealShowing) : '');
   if (html !== lastHTML) { $('#screen').innerHTML = html; lastHTML = html; }
+  preloadAhead();
   fitPanel();
   renderDock();
   renderClock();
@@ -422,6 +422,72 @@ function toast(msg) {
   toastT = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
+// ---------- Предзагрузка картинок ----------
+const loaded = new Set();
+const queue = [];
+let busy = 0;
+function want(url, front = false) {
+  if (!url || loaded.has(url) || queue.includes(url)) return;
+  front ? queue.unshift(url) : queue.push(url);
+  pump();
+}
+function pump() {
+  while (busy < 2 && queue.length) {
+    const url = queue.shift();
+    if (loaded.has(url)) continue;
+    busy++;
+    const im = new Image();
+    im.decoding = 'async';
+    im.onload = im.onerror = () => { loaded.add(url); busy--; setTimeout(pump, 30); };
+    im.src = url;
+  }
+}
+function imagesAt(i) {
+  const s = G.steps()[i];
+  if (!s) return [];
+  const out = [];
+  const sc = sceneFor(s);
+  if (sc[0] && !(s.id === 'verdict' || s.id === 'scores')) out.push(IMG(sc[0]));
+  if (s.id === 'votes') out.push(IMG('UI-08'), IMG('UI-09'));
+  if (s.id === 'cast') out.push(IMG(s.i < CAST.length ? CAST[s.i].portrait : ROLES[ROLE_IDS[s.i - CAST.length]].portrait));
+  if (s.id === 'epi' && EPILOGUE[s.i].portrait) out.push(IMG(EPILOGUE[s.i].portrait));
+  if (s.id === 'inspect' || s.id === 'm-discuss') ZONES.forEach(z => { out.push(IMG(z.img)); if (z.imgNoJar) out.push(IMG(z.imgNoJar)); });
+  if (s.id === 'r-cards' || s.id === 'vote' || s.id === 'scores') ROLE_IDS.forEach(r => out.push(FACE(r)));
+  if (s.id === 'r-cards' && s.r >= 4) Object.values(DECISIONS).forEach(D => D.reveal && D.reveal.imgs.forEach(x => out.push(IMG(x))));
+  return out;
+}
+// следующие два шага — в первую очередь, остальное — фоном по порядку
+function preloadAhead() {
+  if (!state) return;
+  for (let k = 2; k >= 1; k--) imagesAt(state.step + k).reverse().forEach(u => want(u, true));
+  if (!preloadAhead.all) { preloadAhead.all = true; G.steps().forEach((_, i) => imagesAt(i).forEach(u => want(u))); }
+}
+
+// ---------- Звуковая заставка ----------
+function intro() {
+  audio.unlock();
+  audio.sfx('SFX-07', { gain: 0.9 });
+  audio.sfx('SFX-04', { delay: 0.6, gain: 0.5 });
+  audio.sfx('SFX-20', { delay: 1.0 });
+  audio.sfx('SFX-20', { delay: 2.2, gain: 0.8 });
+  audio.sfx('SFX-11', { delay: 3.2, gain: 0.6 });
+  audio.sfx('SFX-01', { delay: 4.2 });
+  setTimeout(() => audio.music('MU-01'), 6800);
+}
+
+function renderSplash() {
+  document.body.classList.add('splashing');
+  setScene('UI-02', true);
+  $('#dock').innerHTML = '';
+  $('#top').innerHTML = '';
+  $('#screen').innerHTML = `<button class="splash" data-act="enter" autofocus>
+    <span class="logo">Призрак<br>Огнеборода</span>
+    <span class="tap">Нажмите, чтобы подняться на борт</span>
+    <span class="sub">Включите звук на телевизоре</span></button>`;
+  lastHTML = '';
+  want(IMG('UI-02'), true);
+}
+
 // ---------- Титул ----------
 function renderTitle(msg = '') {
   setScene('UI-02', false);
@@ -461,6 +527,7 @@ document.addEventListener('click', e => {
   if (b.dataset.kick) { control('kick', b.dataset.kick); return; }
   if (b.dataset.replay) { showReveal(b.dataset.replay); return; }
   switch (b.dataset.act) {
+    case 'enter': document.body.classList.remove('splashing'); intro(); renderTitle(); break;
     case 'start': localStorage.removeItem(SAVE_KEY); state = null; startGame(false); break;
     case 'resume': startGame(true); break;
     case 'newgame':
@@ -473,6 +540,7 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (!state && document.querySelector('.splash') && ['Enter', ' '].includes(e.key)) { e.preventDefault(); document.body.classList.remove('splashing'); intro(); renderTitle(); return; }
   if (!state || e.target.closest('input,textarea')) return;
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); advance(1); }
   else if (e.key === 'ArrowLeft' || e.key === 'PageUp') advance(-1);
@@ -491,5 +559,5 @@ setInterval(() => { if (state) renderClock(); }, 500);
 setInterval(() => { if (state) { renderTop(); if (G.cur(state).id === 'lobby') render(); } }, 5000);
 setInterval(() => { if (state && state.timer) broadcast(); }, 20000);
 
-renderTitle();
+renderSplash();
 window.__game = { get state() { return state; }, G, audio, online };
