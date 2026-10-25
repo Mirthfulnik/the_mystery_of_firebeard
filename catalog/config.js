@@ -3,7 +3,7 @@
 // сохраняются только в браузере посетителя, вместо рекламы — пустые блоки.
 window.ULIKA_CONFIG = {
   // Supabase → Project Settings → API
-  supabaseUrl: '',          // например 'https://abcdxyz.supabase.co'
+  supabaseUrl: 'https://djrxlyueyxuwxqyxzjos.supabase.co',        // например 'https://abcdxyz.supabase.co'
   supabaseAnonKey: '',      // Publishable key (sb_publishable_…) или Legacy → anon public (eyJ…). НЕ secret и НЕ service_role!
 
   ads: {
