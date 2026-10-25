@@ -21,7 +21,8 @@ export const visitor = (() => {
 async function rest(path, opts = {}) {
   const r = await fetch(`${C.supabaseUrl.replace(/\/$/, '')}/rest/v1/${path}`, {
     ...opts,
-    headers: { apikey: C.supabaseAnonKey, Authorization: `Bearer ${C.supabaseAnonKey}`, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    // Старый ключ anon (eyJ…) передаём и как Bearer; новый publishable (sb_publishable_…) — только в apikey.
+    headers: { apikey: C.supabaseAnonKey, ...(C.supabaseAnonKey.startsWith('eyJ') ? { Authorization: `Bearer ${C.supabaseAnonKey}` } : {}), 'Content-Type': 'application/json', ...(opts.headers || {}) },
   });
   if (!r.ok) { const t = await r.text(); throw new Error(t || r.statusText); }
   const txt = await r.text();

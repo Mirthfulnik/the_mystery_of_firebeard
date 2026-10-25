@@ -4,7 +4,7 @@
 window.ULIKA_CONFIG = {
   // Supabase → Project Settings → API
   supabaseUrl: '',          // например 'https://abcdxyz.supabase.co'
-  supabaseAnonKey: '',      // ключ anon public
+  supabaseAnonKey: '',      // Publishable key (sb_publishable_…) или Legacy → anon public (eyJ…). НЕ secret и НЕ service_role!
 
   ads: {
     // Какую сеть показывать, если заданы обе: 'yandex' или 'google'
