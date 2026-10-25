@@ -37,18 +37,19 @@ drop policy if exists "comments readable" on public.comments;
 create policy "comments readable" on public.comments for select to anon using (hidden = false);
 grant select (id, game_id, name, body, created_at) on public.comments to anon;
 
--- Сводка по играм
-create or replace view public.game_stats as
-select g.game_id,
-  (select count(distinct visitor) from public.events e where e.game_id = g.game_id and e.kind = 'view') as views,
-  (select count(*) from public.events e where e.game_id = g.game_id and e.kind = 'share') as shares,
-  (select round(avg(stars)::numeric, 1) from public.ratings r where r.game_id = g.game_id) as rating,
-  (select count(*) from public.ratings r where r.game_id = g.game_id) as votes,
-  (select count(*) from public.comments c where c.game_id = g.game_id and not c.hidden) as comments
-from (
-  select game_id from public.events union select game_id from public.ratings union select game_id from public.comments
-) g;
-grant select on public.game_stats to anon;
+-- Сводка по играм: только итоговые числа, без доступа к самим записям.
+drop view if exists public.game_stats;
+create or replace function public.game_stats(p_ids text[])
+returns table (game_id text, views bigint, shares bigint, rating numeric, votes bigint, comments bigint)
+language sql stable security definer set search_path = public as $$
+  select g.id,
+    (select count(distinct visitor) from events e where e.game_id = g.id and e.kind = 'view'),
+    (select count(*) from events e where e.game_id = g.id and e.kind = 'share'),
+    (select round(avg(stars)::numeric, 1) from ratings r where r.game_id = g.id),
+    (select count(*) from ratings r where r.game_id = g.id),
+    (select count(*) from comments c where c.game_id = g.id and not c.hidden)
+  from unnest(p_ids[1:50]) as g(id);
+$$;
 
 -- Просмотр или репост. Повтор от того же посетителя в течение часа не считается.
 create or replace function public.track(p_game text, p_kind text, p_visitor text)
@@ -80,9 +81,11 @@ begin
   insert into comments (game_id, visitor, name, body) values (p_game, p_visitor, trim(p_name), trim(p_body));
 end $$;
 
+revoke all on function public.game_stats(text[]) from public;
 revoke all on function public.track(text, text, text) from public;
 revoke all on function public.rate(text, text, int) from public;
 revoke all on function public.add_comment(text, text, text, text) from public;
+grant execute on function public.game_stats(text[]) to anon;
 grant execute on function public.track(text, text, text) to anon;
 grant execute on function public.rate(text, text, int) to anon;
 grant execute on function public.add_comment(text, text, text, text) to anon;

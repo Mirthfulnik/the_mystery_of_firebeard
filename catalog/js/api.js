@@ -47,7 +47,7 @@ export async function stats(ids) {
   ids.forEach(id => { out[id] = { ...EMPTY }; });
   if (!live) { ids.forEach(id => { out[id] = demo.stats(id); }); return out; }
   try {
-    const rows = await rest(`game_stats?game_id=in.(${ids.map(encodeURIComponent).join(',')})`);
+    const rows = await rpc('game_stats', { p_ids: ids });
     rows.forEach(r => { out[r.game_id] = { views: +r.views, shares: +r.shares, rating: r.rating === null ? null : +r.rating, votes: +r.votes, comments: +r.comments }; });
   } catch (e) { console.warn('stats', e); }
   return out;
