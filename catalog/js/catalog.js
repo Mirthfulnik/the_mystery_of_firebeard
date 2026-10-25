@@ -53,8 +53,9 @@ function card(g) {
 function renderFeature() {
   const g = GAMES[0], s = ST[g.id] || {};
   document.getElementById('feature').innerHTML = `<article class="feature">
-    <div class="feature-media" style="background-image:url('${g.cover}')">
-      <video src="${g.trailer}" poster="${g.cover}" muted loop playsinline preload="none" aria-label="Трейлер игры"></video>
+    <div class="feature-media" style="background-image:url('${g.trailerPoster}')">
+      <video src="${g.trailer}" poster="${g.trailerPoster}" muted loop playsinline preload="none" aria-label="Трейлер игры"></video>
+      <button class="snd" type="button" data-snd aria-label="Включить звук">🔇</button>
       <span class="label">Новинка</span>
     </div>
     <div class="feature-body">
@@ -79,6 +80,11 @@ function renderFeature() {
     new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }, { threshold: .4 }).observe(v);
   }
   document.querySelector('[data-share]').addEventListener('click', () => share(g, refresh));
+  document.querySelector('[data-snd]').addEventListener('click', e => {
+    v.muted = !v.muted; if (!v.muted) v.play().catch(() => {});
+    e.currentTarget.textContent = v.muted ? '🔇' : '🔊';
+    e.currentTarget.setAttribute('aria-label', v.muted ? 'Включить звук' : 'Выключить звук');
+  });
 }
 
 function renderFilters() {

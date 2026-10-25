@@ -106,15 +106,19 @@ main { min-width: 0; }
 .feature { position: relative; display: grid; grid-template-columns: 1fr; border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
 .feature-media { position: relative; aspect-ratio: 16 / 9; background: #000 center / cover; }
 .feature-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.feature-media .label { position: absolute; left: 14px; top: 14px; background: var(--tape); color: var(--tape-ink); font: 800 .7rem/1 'Unbounded'; padding: 7px 10px; border-radius: 4px; letter-spacing: .08em; text-transform: uppercase; }
+.feature-media .snd { position: absolute; right: 12px; bottom: 12px; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, .65); color: #fff; cursor: pointer; font-size: 18px; }
+.feature-media .label { position: absolute; right: 14px; top: 14px; background: var(--tape); color: var(--tape-ink); font: 800 .7rem/1 'Unbounded'; padding: 7px 10px; border-radius: 4px; letter-spacing: .08em; text-transform: uppercase; }
 .feature-body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 12px; }
 .feature-body h1 { font: 800 clamp(1.5rem, 2.6vw, 2.4rem)/1.1 'Unbounded'; margin: 0; letter-spacing: -.02em; }
 .feature-body .teaser { margin: 0; color: #c9cedb; max-width: 62ch; }
 .feature-body .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 @media (min-width: 900px) {
-  .feature { grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); }
-  .feature-media { aspect-ratio: auto; min-height: 420px; }
-  .feature-body { padding: 32px; justify-content: center; }
+  .feature { grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr); }
+  .feature-media { aspect-ratio: 16 / 9; height: 100%; }
+  .feature-body { padding: 24px 28px; justify-content: center; gap: 10px; align-self: stretch; background: var(--surface); }
+  .feature-body h1 { font-size: clamp(1.4rem, 2vw, 2.2rem); }
+  .feature-body .teaser { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: .95rem; }
+  .feature-body .btn.big { font-size: 1rem; padding: .7em 1.2em; }
 }
 
 h2.sec { font: 800 1.3rem/1.2 'Unbounded'; margin: 40px 0 16px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 12px; }
@@ -252,5 +256,5 @@ html.tv .stars svg { width: 48px; height: 48px; }
   .side .capsule { display: none; }
   .viewer .cap { font-size: .75rem; padding: 14px 10px 6px; }
   .feature-body h1 { font-size: 1.6rem; }
+  .feature-body .row .btn { flex: 1 1 auto; font-size: 1rem; padding: .7em 1em; }
 }
-.feature-media video { transform: scale(1.08); }
