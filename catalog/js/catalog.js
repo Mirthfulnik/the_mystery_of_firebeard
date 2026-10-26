@@ -2,7 +2,7 @@
 import { GAMES, THEMES, COLLECTIONS, playersLabel } from './data.js';
 import { stats } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
-import { setupApp, install } from './install.js';
+import { setupApp, install, onInstalled } from './install.js';
 
 frame('all');
 
@@ -47,6 +47,7 @@ function card(g) {
       <span title="Игроки">${ICON.people}${playersLabel(g.players)}</span>
       <span title="Просмотры">${ICON.eye}${num(s.views || 0)}</span>
       <span title="Поделились">${ICON.share}${num(s.shares || 0)}</span>
+      ${g.app ? `<span title="Установили на ПК">${ICON.download}${num(s.installs || 0)}</span>` : ''}
     </div>
   </a>`;
 }
@@ -66,7 +67,7 @@ function renderFeature() {
       <div class="meta">
         <span class="rating">${stars(s.rating)} ${s.rating ? s.rating.toFixed(1).replace('.', ',') : '—'}</span>
         <span>${s.votes || 0} ${plural(s.votes || 0, 'оценка', 'оценки', 'оценок')}</span>
-        <span>${ICON.eye}${num(s.views || 0)}</span><span>${ICON.share}${num(s.shares || 0)}</span>
+        <span title="Просмотры">${ICON.eye}${num(s.views || 0)}</span><span title="Поделились">${ICON.share}${num(s.shares || 0)}</span>${g.app ? `<span title="Установили на ПК">${ICON.download}${num(s.installs || 0)}</span>` : ''}
       </div>
       <div class="row">
         <a class="btn big" href="game.html?id=${g.id}">Подробнее</a>
@@ -83,6 +84,7 @@ function renderFeature() {
   }
   document.querySelector('[data-share]').addEventListener('click', () => share(g, refresh));
   setupApp(g);
+  onInstalled(refresh);
   const ib = document.querySelector('[data-install]');
   if (ib) ib.addEventListener('click', () => install(g));
   document.querySelector('[data-snd]').addEventListener('click', e => {

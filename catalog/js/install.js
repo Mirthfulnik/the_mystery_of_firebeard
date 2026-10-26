@@ -1,13 +1,24 @@
 // Установка игры как приложения (PWA) прямо из каталога.
 // У игры в data.js задано app: { manifest, sw, scope } — её собственный manifest и service worker.
 import { esc } from './ui.js';
+import { track } from './api.js';
 
 let deferred = null, current = null;
 const listeners = new Set();
 const notify = () => listeners.forEach(f => f());
 
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; notify(); });
-addEventListener('appinstalled', () => { deferred = null; notify(); });
+let installing = null;
+addEventListener('appinstalled', () => { deferred = null; if (installing) countInstall(installing); notify(); });
+const countDone = new Set();
+async function countInstall(game) {
+  if (countDone.has(game.id)) return;
+  countDone.add(game.id);
+  await track(game.id, 'install');
+  onCounted && onCounted();
+}
+let onCounted = null;
+export const onInstalled = f => { onCounted = f; };
 
 // Подключить manifest игры к странице каталога, чтобы браузер предложил установить именно её.
 export function setupApp(game) {
@@ -25,9 +36,11 @@ export const canPrompt = () => !!deferred;
 export async function install(game) {
   if (deferred) {
     const e = deferred; deferred = null;
+    installing = game;
     e.prompt();
     const { outcome } = await e.userChoice;
     notify();
+    if (outcome === 'accepted') countInstall(game);
     if (outcome === 'accepted') toast(`«${game.title}» устанавливается — ярлык появится на рабочем столе и в меню «Пуск».`);
     return;
   }

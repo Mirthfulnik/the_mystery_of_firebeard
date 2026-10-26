@@ -30,14 +30,14 @@ async function rest(path, opts = {}) {
 }
 const rpc = (fn, args) => rest('rpc/' + fn, { method: 'POST', body: JSON.stringify(args) });
 
-const EMPTY = { views: 0, shares: 0, rating: null, votes: 0, comments: 0 };
+const EMPTY = { views: 0, shares: 0, installs: 0, rating: null, votes: 0, comments: 0 };
 
 // ---------- демо-режим ----------
 const demo = {
   stats(id) {
     const d = ls.get('demo.' + id, { views: [], shares: 0, ratings: {}, comments: [] });
     const r = Object.values(d.ratings);
-    return { views: d.views.length, shares: d.shares, rating: r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 10) / 10 : null, votes: r.length, comments: d.comments.length };
+    return { views: d.views.length, shares: d.shares, installs: (d.installs || []).length, rating: r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 10) / 10 : null, votes: r.length, comments: d.comments.length };
   },
   mut(id, f) { const d = ls.get('demo.' + id, { views: [], shares: 0, ratings: {}, comments: [] }); f(d); ls.set('demo.' + id, d); },
 };
@@ -48,7 +48,7 @@ export async function stats(ids) {
   if (!live) { ids.forEach(id => { out[id] = demo.stats(id); }); return out; }
   try {
     const rows = await rpc('game_stats', { p_ids: ids });
-    rows.forEach(r => { out[r.game_id] = { views: +r.views, shares: +r.shares, rating: r.rating === null ? null : +r.rating, votes: +r.votes, comments: +r.comments }; });
+    rows.forEach(r => { out[r.game_id] = { views: +r.views, shares: +r.shares, installs: +(r.installs || 0), rating: r.rating === null ? null : +r.rating, votes: +r.votes, comments: +r.comments }; });
   } catch (e) { console.warn('stats', e); }
   return out;
 }
@@ -57,7 +57,16 @@ export async function track(id, kind) {
   const key = `tracked.${id}.${kind}`;
   if (kind === 'view' && Date.now() - ls.get(key, 0) < 3600e3) return;
   ls.set(key, Date.now());
-  if (!live) { demo.mut(id, d => { if (kind === 'view') { if (!d.views.includes(visitor)) d.views.push(visitor); } else d.shares++; }); return; }
+  if (kind === 'install' && ls.get(key + '.done', false)) return;   // установку от одного посетителя считаем один раз
+  if (kind === 'install') ls.set(key + '.done', true);
+  if (!live) {
+    demo.mut(id, d => {
+      if (kind === 'view') { if (!d.views.includes(visitor)) d.views.push(visitor); }
+      else if (kind === 'install') { d.installs = d.installs || []; if (!d.installs.includes(visitor)) d.installs.push(visitor); }
+      else d.shares++;
+    });
+    return;
+  }
   try { await rpc('track', { p_game: id, p_kind: kind, p_visitor: visitor }); } catch (e) { console.warn('track', e); }
 }
 

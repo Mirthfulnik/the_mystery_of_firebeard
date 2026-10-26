@@ -2,7 +2,7 @@
 import { GAMES, byId, playersLabel } from './data.js';
 import { stats, track, myRating, rate, comments, addComment } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
-import { setupApp, install } from './install.js';
+import { setupApp, install, onInstalled } from './install.js';
 
 frame('');
 
@@ -116,6 +116,7 @@ function render() {
 
   page.querySelector('[data-share]').addEventListener('click', () => share(g, refreshStats));
   setupApp(g);
+  onInstalled(refreshStats);
   const ib = page.querySelector('[data-install]');
   if (ib) ib.addEventListener('click', () => install(g));
 
@@ -175,7 +176,8 @@ async function refreshStats() {
   document.getElementById('stats').innerHTML = `
     <div class="stat"><b>${r}</b><span>${s.votes} ${plural(s.votes, 'оценка', 'оценки', 'оценок')}</span></div>
     <div class="stat"><b>${num(s.views)}</b><span>${plural(s.views, 'просмотр', 'просмотра', 'просмотров')}</span></div>
-    <div class="stat"><b>${num(s.shares)}</b><span>${plural(s.shares, 'поделился', 'поделились', 'поделились')}</span></div>`;
+    <div class="stat"><b>${num(s.shares)}</b><span>${plural(s.shares, 'поделился', 'поделились', 'поделились')}</span></div>
+    ${g.app ? `<div class="stat"><b>${num(s.installs)}</b><span>${plural(s.installs, 'установка', 'установки', 'установок')} на ПК</span></div>` : ''}`;
   document.getElementById('ravg').innerHTML = `<b>${r}</b><div>${stars(s.rating, 'lg')}<small>${s.votes ? `${s.votes} ${plural(s.votes, 'оценка', 'оценки', 'оценок')}` : 'Пока никто не оценил'}</small></div>`;
   document.getElementById('ccount').textContent = s.comments ? `(${s.comments})` : '';
 }
