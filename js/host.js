@@ -4,7 +4,7 @@ import * as G from './game.js';
 import { ROLES, ROLE_IDS, CAST, PROLOGUE, ZONES, ROUNDS, MIDNIGHT, DECISIONS, EPILOGUE, GUILTY } from './content.js';
 import { Channel, probeBroker, randomToken, queryKeep } from './net.js';
 import { GameAudio } from './audio.js';
-import { pwa } from './pwa.js';
+import './pwa.js'; // офлайн-кэш установленного приложения
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -500,7 +500,6 @@ function renderTitle(msg = '') {
     <div class="body"><p>Играть можно из любой сети: телефоны подключаются по QR-коду или по ссылке. В игре всегда все пять персонажей — свободные роли читает ведущий.</p></div>
     <button class="btn" data-act="start">Новая игра</button>
     ${saved && saved.step > 0 ? `<button class="btn ghost" data-act="resume">Продолжить игру ${saved.code}</button>` : ''}
-    ${pwa.prompt && !pwa.standalone() ? '<button class="btn ghost" data-act="install">Установить на компьютер</button><p class="hint">Игра появится на рабочем столе и откроется в своём окне, без браузера</p>' : ''}
     ${msg ? `<p class="hint">${esc(msg)}</p>` : ''}</aside>`;
   lastHTML = '';
 }
@@ -521,8 +520,6 @@ async function startGame(resume) {
   render();
 }
 
-pwa.onChange = () => { if (!state && !document.querySelector('.splash') && document.querySelector('[data-act="start"]')) renderTitle(); };
-
 // ---------- События ----------
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act],[data-kick],[data-replay]');
@@ -534,7 +531,6 @@ document.addEventListener('click', e => {
     case 'enter': document.body.classList.remove('splashing'); intro(); renderTitle(); break;
     case 'start': localStorage.removeItem(SAVE_KEY); state = null; startGame(false); break;
     case 'resume': startGame(true); break;
-    case 'install': pwa.install().then(ok => { if (!state && !document.querySelector('.splash')) renderTitle(ok ? 'Готово! Ярлык игры появится на рабочем столе и в меню «Пуск».' : ''); }); break;
     case 'newgame':
       if (confirm('Начать новую игру? Текущая будет удалена.')) { localStorage.removeItem(SAVE_KEY); if (ch) ch.close(); state = null; audio.music(null); bgCur = null; renderTitle(); }
       break;

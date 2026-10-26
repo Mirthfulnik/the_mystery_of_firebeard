@@ -2,6 +2,7 @@
 import { GAMES, byId, playersLabel } from './data.js';
 import { stats, track, myRating, rate, comments, addComment } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
+import { setupApp, install } from './install.js';
 
 frame('');
 
@@ -48,7 +49,9 @@ function render() {
       <div class="actions">
         <a class="btn big" href="${g.playUrl}">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
+        ${g.app ? `<button class="btn ghost big" data-install>${ICON.download}Установить на ПК</button>` : ''}
       </div>
+      ${g.app ? '<p class="hint-small">Ярлык на рабочем столе, игра в своём окне и быстрее запускается</p>' : ''}
     </aside>
   </div>
 
@@ -112,6 +115,9 @@ function render() {
   setTimeout(() => g.shots.forEach(s => { const im = new Image(); im.src = s.src; }), 1500);
 
   page.querySelector('[data-share]').addEventListener('click', () => share(g, refreshStats));
+  setupApp(g);
+  const ib = page.querySelector('[data-install]');
+  if (ib) ib.addEventListener('click', () => install(g));
 
   // Вкладки: подсветка текущего раздела
   const tabs = [...page.querySelectorAll('.tabs a')];

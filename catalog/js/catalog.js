@@ -2,6 +2,7 @@
 import { GAMES, THEMES, COLLECTIONS, playersLabel } from './data.js';
 import { stats } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
+import { setupApp, install } from './install.js';
 
 frame('all');
 
@@ -71,6 +72,7 @@ function renderFeature() {
         <a class="btn big" href="game.html?id=${g.id}">Подробнее</a>
         <a class="btn ghost big" href="${g.playUrl}">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
+        ${g.app ? `<button class="btn ghost big" data-install>${ICON.download}Установить на ПК</button>` : ''}
       </div>
     </div>
   </article>`;
@@ -80,6 +82,9 @@ function renderFeature() {
     new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }, { threshold: .4 }).observe(v);
   }
   document.querySelector('[data-share]').addEventListener('click', () => share(g, refresh));
+  setupApp(g);
+  const ib = document.querySelector('[data-install]');
+  if (ib) ib.addEventListener('click', () => install(g));
   document.querySelector('[data-snd]').addEventListener('click', e => {
     v.muted = !v.muted; if (!v.muted) v.play().catch(() => {});
     e.currentTarget.textContent = v.muted ? '🔇' : '🔊';
