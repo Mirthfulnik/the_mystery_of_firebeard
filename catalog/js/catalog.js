@@ -2,7 +2,7 @@
 import { GAMES, THEMES, COLLECTIONS, playersLabel } from './data.js';
 import { stats } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
-import { setupApp, install, onInstalled } from './install.js';
+import { setupApp, install, onInstalled, installAllowed, installLabel } from './install.js';
 
 frame('all');
 
@@ -73,7 +73,7 @@ function renderFeature() {
         <a class="btn big" href="game.html?id=${g.id}">Подробнее</a>
         <a class="btn ghost big" href="${g.playUrl}">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
-        ${g.app ? `<button class="btn ghost big" data-install>${ICON.download}Установить на ПК</button>` : ''}
+        ${installAllowed(g) ? `<button class="btn ghost big" data-install>${ICON.download}${installLabel()}</button>` : ''}
       </div>
     </div>
   </article>`;

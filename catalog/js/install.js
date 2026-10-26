@@ -4,6 +4,22 @@ import { esc } from './ui.js';
 import { track } from './api.js';
 
 let deferred = null, current = null;
+
+// Кнопку установки показываем только на ноутбуках, компьютерах и планшетах:
+// на телефоне игра — это пульт игрока, а на телевизоре ставить приложение из браузера нельзя.
+const TV_UA = /SmartTV|SMART-TV|Tizen|Web0S|webOS|HbbTV|BRAVIA|NetCast|AFT[A-Z]|Android TV|GoogleTV|CrKey|Roku|VIDAA|Hisense/i;
+export function deviceKind() {
+  const ua = navigator.userAgent;
+  if (TV_UA.test(ua)) return 'tv';
+  const touch = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  const short = Math.min(screen.width, screen.height);
+  if (touch && short < 600) return 'phone';
+  if (/iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua)) return 'phone';
+  if (touch || /iPad|Android/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'tablet';
+  return 'desktop';
+}
+export const installAllowed = g => !!(g && g.app) && ['desktop', 'tablet'].includes(deviceKind());
+export const installLabel = () => deviceKind() === 'tablet' ? 'Установить приложение' : 'Установить на ПК';
 const listeners = new Set();
 const notify = () => listeners.forEach(f => f());
 
@@ -59,7 +75,9 @@ function help(game) {
   const edge = /Edg\//.test(ua), chrome = /Chrome\//.test(ua) && !edge && !/OPR\//.test(ua) && !/YaBrowser/.test(ua);
   const yandex = /YaBrowser/.test(ua);
   let how;
-  if (chrome) how = 'Нажмите значок «Установить» справа в адресной строке (монитор со стрелкой) или меню ⋮ → «Трансляция, сохранение и отправка» → «Установить страницу как приложение».';
+  const ios = /iPad|iPhone/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) how = 'В Safari нажмите «Поделиться» (квадрат со стрелкой вверх) → «На экран „Домой“». На главном экране появится значок игры.';
+  else if (chrome) how = 'Нажмите значок «Установить» справа в адресной строке (монитор со стрелкой) или меню ⋮ → «Трансляция, сохранение и отправка» → «Установить страницу как приложение».';
   else if (edge) how = 'Нажмите значок «Приложение доступно» справа в адресной строке или меню ⋯ → «Приложения» → «Установить этот сайт как приложение».';
   else if (yandex) how = 'Нажмите значок установки справа в адресной строке или меню ☰ → «Дополнения» → «Установить приложение».';
   else how = 'Ваш браузер не умеет устанавливать сайты как приложения. Откройте эту страницу в Google Chrome или Microsoft Edge — или просто играйте в браузере, это ничем не хуже.';
@@ -75,3 +93,4 @@ function help(game) {
   el.addEventListener('keydown', e => { if (e.key === 'Escape') el.remove(); });
   el.querySelector('[data-close]').focus();
 }
+export const installHint = () => deviceKind() === 'tablet' ? 'Значок на главном экране, игра в своём окне и быстрее запускается' : 'Ярлык на рабочем столе, игра в своём окне и быстрее запускается';

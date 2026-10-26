@@ -261,3 +261,5 @@ html.tv .stars svg { width: 48px; height: 48px; }
 @media (min-width: 1200px) { body.no-rail .shell { grid-template-columns: minmax(0, 1fr); } }
 .hint-small { margin: -4px 0 0; color: var(--muted); font-size: .8rem; }
 .toast { position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%); z-index: 70; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+/* Крупный режим для телевизора: установка не нужна */
+html.tv [data-install], html.tv [data-install-hint] { display: none; }

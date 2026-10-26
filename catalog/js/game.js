@@ -2,7 +2,7 @@
 import { GAMES, byId, playersLabel } from './data.js';
 import { stats, track, myRating, rate, comments, addComment } from './api.js';
 import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
-import { setupApp, install, onInstalled } from './install.js';
+import { setupApp, install, onInstalled, installAllowed, installLabel, installHint } from './install.js';
 
 frame('');
 
@@ -49,9 +49,9 @@ function render() {
       <div class="actions">
         <a class="btn big" href="${g.playUrl}">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
-        ${g.app ? `<button class="btn ghost big" data-install>${ICON.download}Установить на ПК</button>` : ''}
+        ${installAllowed(g) ? `<button class="btn ghost big" data-install>${ICON.download}${installLabel()}</button>` : ''}
       </div>
-      ${g.app ? '<p class="hint-small">Ярлык на рабочем столе, игра в своём окне и быстрее запускается</p>' : ''}
+      ${installAllowed(g) ? `<p class="hint-small" data-install-hint>${installHint()}</p>` : ''}
     </aside>
   </div>
 
