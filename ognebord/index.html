@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Призрак Огнеборода</title>
+<meta name="description" content="Хэллоуинский детектив для компании: экран для телевизора.">
+<link rel="icon" href="icons/favicon-64.png" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1020">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/host.css">
+<link rel="preload" as="image" href="img/bg/UI-02.webp">
+</head>
+<body class="host">
+<div class="stage">
+  <div id="blur"></div>
+  <div id="scene"></div>
+  <main id="screen"></main>
+  <div class="topbar" id="top"></div>
+  <nav class="dock" id="dock" aria-label="Управление игрой"></nav>
+  <div class="toast" id="toast" hidden></div>
+</div>
+<script src="vendor/mqtt.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script type="module" src="js/host.js"></script>
+</body>
+</html>

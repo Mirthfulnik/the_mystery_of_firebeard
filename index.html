@@ -2,28 +2,34 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Призрак Огнеборода</title>
-<meta name="description" content="Хэллоуинский детектив для компании: экран для телевизора.">
-<link rel="icon" href="icons/favicon-64.png" type="image/png">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0b1020">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/host.css">
-<link rel="preload" as="image" href="img/bg/UI-02.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Улика — детективные игры для вечеринок</title>
+<meta name="description" content="Каталог детективных игр для вечеринок: сюжет на телевизоре, тайны в телефонах. Трейлеры, правила, оценки и отзывы.">
+<meta name="theme-color" content="#10131a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Улика — детективные игры для вечеринок">
+<meta property="og:description" content="Выберите детектив для своей компании: трейлеры, правила, оценки и отзывы.">
+<meta property="og:image" content="media/ognebord-og.jpg">
+<link rel="preload" href="fonts/unbounded-cyrillic-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css">
+<script>/* ярлык, установленный, когда игра жила в корне сайта */ if (/[?&]source=app/.test(location.search)) location.replace('ognebord/');</script>
+<script src="config.js"></script>
+<script type="module" src="js/catalog.js"></script>
 </head>
-<body class="host">
-<div class="stage">
-  <div id="blur"></div>
-  <div id="scene"></div>
-  <main id="screen"></main>
-  <div class="topbar" id="top"></div>
-  <nav class="dock" id="dock" aria-label="Управление игрой"></nav>
-  <div class="toast" id="toast" hidden></div>
+<body>
+<div class="shell">
+  <aside class="rail" aria-label="Реклама"><div class="ad ad-left" data-ad="left"></div></aside>
+  <main id="main">
+    <div id="feature"></div>
+
+    <h2 class="sec" id="collections">Подборки</h2>
+    <div class="collections" id="colls"></div>
+
+    <h2 class="sec" id="all">Все игры <small id="count"></small></h2>
+    <div class="filters" role="group" aria-label="Темы" id="themes"></div>
+    <div class="grid" id="grid" aria-live="polite"></div>
+  </main>
 </div>
-<script src="vendor/mqtt.min.js"></script>
-<script src="vendor/qrcode.js"></script>
-<script type="module" src="js/host.js"></script>
 </body>
 </html>
