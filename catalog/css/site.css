@@ -258,3 +258,4 @@ html.tv .stars svg { width: 48px; height: 48px; }
   .feature-body h1 { font-size: 1.6rem; }
   .feature-body .row .btn { flex: 1 1 auto; font-size: 1rem; padding: .7em 1em; }
 }
+@media (min-width: 1200px) { body.no-rail .shell { grid-template-columns: minmax(0, 1fr); } }

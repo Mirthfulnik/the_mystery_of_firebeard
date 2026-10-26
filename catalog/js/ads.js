@@ -47,6 +47,11 @@ export function mountAds() {
       el.innerHTML = `<div class="ad-ph"><b>Место для рекламы</b><span>${SIZES[slot]}</span></div>`;
     } else {
       el.hidden = true;
+      // Без рекламы убираем и рамки вокруг: левую колонку и нижнюю панель
+      const wrap = el.closest('.rail, .ad-bottom');
+      if (wrap) wrap.hidden = true;
+      if (slot === 'bottom') document.body.classList.remove('has-bottom-ad');
+      if (slot === 'left') document.body.classList.add('no-rail');
     }
   });
   const close = document.querySelector('[data-ad-close]');
