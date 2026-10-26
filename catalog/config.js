@@ -14,6 +14,6 @@ window.ULIKA_CONFIG = {
     // Google AdSense: ca-pub-… и ID слотов
     google: { client: '', top: '', left: '', bottom: '' },
     // Показывать пустые рамки «Место для рекламы», пока ID не заданы
-    placeholders: true,
+    placeholders: false,
   },
 };
