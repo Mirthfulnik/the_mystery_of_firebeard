@@ -1,7 +1,7 @@
 // Карточка игры: трейлер и скриншоты, тизер, оценки, сюжет, правила, комментарии.
 import { GAMES, byId, playersLabel } from './data.js';
 import { stats, track, myRating, rate, comments, addComment } from './api.js';
-import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
+import { frame, esc, num, plural, ICON, stars, share, ready } from './ui.js';
 import { setupApp, install, onInstalled, installAllowed, installLabel, installHint } from './install.js';
 
 frame('');
@@ -12,9 +12,11 @@ const page = document.getElementById('page');
 
 if (!g) {
   page.innerHTML = `<div class="empty">Такой игры нет. <a href="index.html">Вернуться в каталог</a></div>`;
+  ready();
 } else {
   document.title = `${g.title} — Улика`;
   render();
+  ready();
   track(g.id, 'view').then(refreshStats);
   loadComments();
 }

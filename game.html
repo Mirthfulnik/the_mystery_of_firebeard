@@ -11,12 +11,34 @@
 <meta property="og:description" content="Маскарад на пароходе, призрак пирата и пять подозреваемых. Сюжет на телевизоре, тайны в телефонах.">
 <meta property="og:image" content="media/ognebord-og.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/unbounded-cyrillic-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+/* Заставка загрузки: видна сразу, до загрузки стилей и скриптов */
+html:not(.ready) .shell, html:not(.ready) body > header, html:not(.ready) .tape, html:not(.ready) .ad-top, html:not(.ready) .foot, html:not(.ready) .ad-bottom { visibility: hidden; }
+html, body { background: #10131a; }
+#boot { position: fixed; inset: 0; z-index: 1000; background: #10131a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; transition: opacity .35s ease, visibility .35s; }
+html.ready #boot { opacity: 0; visibility: hidden; pointer-events: none; }
+#boot .bm { display: flex; align-items: center; gap: 16px; }
+#boot .mk { width: 72px; height: 72px; border-radius: 14px; background: #f2d40c; color: #15130a; font: 800 42px/72px 'Unbounded', 'Arial Black', sans-serif; text-align: center; transform: rotate(-6deg); }
+#boot .nm { color: #e9ebf1; font: 800 48px/1 'Unbounded', 'Arial Black', sans-serif; letter-spacing: -.02em; }
+#boot .tp { width: min(260px, 60vw); height: 10px; border-radius: 5px; overflow: hidden; background: repeating-linear-gradient(-45deg, #f2d40c 0 12px, #15130a 12px 18px); background-size: 34px 10px; animation: boot-tape .8s linear infinite; opacity: .9; }
+#boot .sb { color: #98a1b3; font: 400 14px/1.3 system-ui, sans-serif; }
+@keyframes boot-tape { to { background-position: 34px 0; } }
+@media (prefers-reduced-motion: reduce) { #boot .tp { animation: none; } }
+</style>
+<noscript><style>#boot { display: none; } html:not(.ready) .shell { visibility: visible; }</style></noscript>
+<script>setTimeout(function () { document.documentElement.classList.add('ready'); }, 8000); /* страховка */</script>
 <link rel="stylesheet" href="css/site.css">
 <script src="config.js"></script>
 <script type="module" src="js/game.js"></script>
 </head>
 <body>
+<div id="boot" role="status" aria-label="Загрузка">
+  <div class="bm"><span class="mk">У</span><span class="nm">Улика</span></div>
+  <div class="tp"></div>
+  <div class="sb">детективные игры для вечеринок</div>
+</div>
 <div class="shell">
   <aside class="rail" aria-label="Реклама"><div class="ad ad-left" data-ad="left"></div></aside>
   <main id="main"><div id="page"></div></main>

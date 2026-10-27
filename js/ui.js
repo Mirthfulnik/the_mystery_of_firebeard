@@ -135,3 +135,12 @@ function tvMode() {
   apply(on);
   btn.addEventListener('click', () => { const v = !document.documentElement.classList.contains('tv'); apply(v); try { localStorage.setItem('ulika.tv', v ? '1' : '0'); } catch (e) { /* ignore */ } });
 }
+
+// Убрать заставку загрузки, когда страница собрана и шрифты готовы (но не дольше 2,5 с).
+export function ready() {
+  const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+  Promise.race([fonts, new Promise(r => setTimeout(r, 2500))]).then(() => {
+    requestAnimationFrame(() => document.documentElement.classList.add('ready'));
+    setTimeout(() => { const b = document.getElementById('boot'); if (b) b.remove(); }, 600);
+  });
+}

@@ -1,7 +1,7 @@
 // Главная: витрина, подборки, поиск и фильтр по темам.
 import { GAMES, THEMES, COLLECTIONS, playersLabel } from './data.js';
 import { stats } from './api.js';
-import { frame, esc, num, plural, ICON, stars, share } from './ui.js';
+import { frame, esc, num, plural, ICON, stars, share, ready } from './ui.js';
 import { setupApp, install, onInstalled, installAllowed, installLabel } from './install.js';
 
 frame('all');
@@ -137,5 +137,6 @@ q.closest('form').addEventListener('submit', e => { e.preventDefault(); state.q 
 
 renderFeature();
 renderAll();
+ready();
 refresh();
 if (state.q || state.theme || state.coll) document.getElementById('all').scrollIntoView();
