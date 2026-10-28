@@ -27,7 +27,7 @@ export function header(active = '') {
       <label class="sr" for="q">Поиск игр</label>${ICON.search}
       <input id="q" name="q" type="search" placeholder="Найти игру, тему или персонажа" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('q') || '')}">
     </form>
-    <nav class="topnav" aria-label="Разделы"><a href="index.html#all" ${active === 'all' ? 'aria-current="page"' : ''}>Все игры</a><a href="index.html#collections">Подборки</a></nav>
+    <nav class="topnav" aria-label="Разделы"><a href="index.html#all" ${active === 'all' ? 'aria-current="page"' : ''}>Все игры</a><a href="index.html#collections">Подборки</a><a class="nav-how" href="index.html#how">Как играть</a></nav>
     <button class="tvbtn" type="button" data-tv aria-pressed="false" title="Крупный режим для телевизора">ТВ</button>
   </header>
   <div class="tape" aria-hidden="true"><span>Место преступления · не пересекать · Улика · Место преступления · не пересекать · Улика · Место преступления · не пересекать · Улика ·</span></div>

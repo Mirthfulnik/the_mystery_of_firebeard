@@ -140,3 +140,28 @@ renderAll();
 ready();
 refresh();
 if (state.q || state.theme || state.coll) document.getElementById('all').scrollIntoView();
+
+// ---------- Как играть ----------
+(function howTo() {
+  const v = document.getElementById('how-video');
+  const portrait = () => matchMedia('(max-width: 720px) and (orientation: portrait)').matches;
+  const pick = () => {
+    const vert = portrait(), src = vert ? 'media/howto-9x16.mp4' : 'media/howto-16x9.mp4';
+    if (v.dataset.src === src) return;
+    v.dataset.src = src; v.classList.toggle('vert', vert);
+    v.poster = vert ? 'media/howto-9x16.jpg' : 'media/howto-16x9.jpg';
+    v.querySelector('source').src = src; v.load();
+  };
+  pick();
+  matchMedia('(orientation: portrait)').addEventListener('change', pick);
+  const more = document.getElementById('how-more'), less = document.getElementById('how-less'), box = document.getElementById('how-details');
+  const set = open => {
+    box.hidden = !open; more.setAttribute('aria-expanded', String(open));
+    more.textContent = open ? 'Свернуть' : 'Подробнее';
+    if (open) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else document.getElementById('how').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  more.addEventListener('click', () => set(box.hidden));
+  less.addEventListener('click', () => set(false));
+  if (location.hash === '#how-details') set(true);
+})();

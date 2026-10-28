@@ -263,3 +263,17 @@ html.tv .stars svg { width: 48px; height: 48px; }
 .toast { position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%); z-index: 70; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 /* Крупный режим для телевизора: установка не нужна */
 html.tv [data-install], html.tv [data-install-hint] { display: none; }
+
+/* ---------- Как играть ---------- */
+.topnav a.nav-how { color: var(--tape-ink); background: var(--tape); }
+.topnav a.nav-how:hover { color: var(--tape-ink); background: var(--tape); filter: brightness(1.08); }
+.how { scroll-margin-top: 90px; }
+.how-grid { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 1000px) { .how-grid { grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); } }
+.how-video { border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--line); }
+.how-video video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.how-video video.vert { aspect-ratio: 9 / 16; max-height: 78vh; width: auto; margin: 0 auto; }
+.how-steps { margin: 0 0 20px; padding-left: 1.4em; display: grid; gap: 12px; color: #d4d8e2; }
+.how-steps b { color: var(--text); }
+.how-details { margin-top: 26px; scroll-margin-top: 90px; }
+.how-details .rules { margin-bottom: 18px; }
