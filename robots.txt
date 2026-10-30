@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /ognebord/play.html
+Disallow: /ognebord/gm.html
+Disallow: /catalog/
+Disallow: /play.html
+Disallow: /gm.html
+
+Sitemap: https://ulika.vibecard.ru/sitemap.xml
