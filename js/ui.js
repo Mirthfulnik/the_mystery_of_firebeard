@@ -3,8 +3,11 @@ import { GAMES } from './data.js';
 import { track, live } from './api.js';
 import { mountAds } from './ads.js';
 
-// Цели Яндекс Метрики (тип «JavaScript-событие» с этими идентификаторами)
-export const goal = (name, params) => { try { window.ym && window.ym(113916917, 'reachGoal', name, params); } catch (e) { /* ignore */ } };
+// Цели: Яндекс Метрика (JavaScript-событие) и Google Analytics 4 (событие с тем же именем)
+export const goal = (name, params) => {
+  try { window.ym && window.ym(113916917, 'reachGoal', name, params); } catch (e) { /* ignore */ }
+  try { window.gtag && window.gtag('event', name, params || {}); } catch (e) { /* ignore */ }
+};
 document.addEventListener('click', e => { const el = e.target.closest('[data-goal]'); if (el) goal(el.dataset.goal); });
 
 export const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

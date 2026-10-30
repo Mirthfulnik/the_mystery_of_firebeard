@@ -511,7 +511,7 @@ async function startGame(resume) {
     renderTitle('Ищем свободный сервер связи…');
     const broker = await probeBroker(0);
     state = G.newState({ secret: randomToken(16), gmToken: randomToken(9), broker });
-    try { window.ym && ym(113916917, 'reachGoal', 'game_start'); } catch (e) { /* ignore */ }
+    try { window.ym && ym(113916917, 'reachGoal', 'game_start'); window.gtag && gtag('event', 'game_start'); } catch (e) { /* ignore */ }
   }
   lastHTML = '';
   lastZones = state.step > 0 ? G.zonesOpen(state).length : 0;

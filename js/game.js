@@ -107,7 +107,7 @@ function render() {
   const show = i => {
     const m = media[i];
     viewer.innerHTML = m.video
-      ? `<video src="${m.src}" poster="${m.thumb}" onplay="window.ym&&ym(113916917,'reachGoal','trailer_play')" controls playsinline preload="metadata" aria-label="Трейлер игры"></video>`
+      ? `<video src="${m.src}" poster="${m.thumb}" onplay="window.ym&&ym(113916917,'reachGoal','trailer_play');window.gtag&&gtag('event','trailer_play')" controls playsinline preload="metadata" aria-label="Трейлер игры"></video>`
       : `<div class="vbg" style="background-image:url('${m.thumb}')"></div><img class="main" src="${m.src}" alt="${esc(m.alt)}"><div class="cap">${esc(m.alt)}</div>`;
     page.querySelectorAll('.thumb').forEach(t => t.setAttribute('aria-current', String(+t.dataset.i === i)));
   };
