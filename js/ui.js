@@ -3,6 +3,10 @@ import { GAMES } from './data.js';
 import { track, live } from './api.js';
 import { mountAds } from './ads.js';
 
+// Цели Яндекс Метрики (тип «JavaScript-событие» с этими идентификаторами)
+export const goal = (name, params) => { try { window.ym && window.ym(113916917, 'reachGoal', name, params); } catch (e) { /* ignore */ } };
+document.addEventListener('click', e => { const el = e.target.closest('[data-goal]'); if (el) goal(el.dataset.goal); });
+
 export const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 export const num = n => n >= 10000 ? (n / 1000).toFixed(0) + ' тыс.' : n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',') + ' тыс.' : String(n);
 export const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c; };
@@ -27,7 +31,7 @@ export function header(active = '') {
       <label class="sr" for="q">Поиск игр</label>${ICON.search}
       <input id="q" name="q" type="search" placeholder="Найти игру, тему или персонажа" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('q') || '')}">
     </form>
-    <nav class="topnav" aria-label="Разделы"><a href="index.html#all" ${active === 'all' ? 'aria-current="page"' : ''}>Все игры</a><a href="index.html#collections">Подборки</a><a class="nav-how" href="index.html#how">Как играть</a></nav>
+    <nav class="topnav" aria-label="Разделы"><a href="index.html#all" ${active === 'all' ? 'aria-current="page"' : ''}>Все игры</a><a href="index.html#collections">Подборки</a><a class="nav-how" href="index.html#how" data-goal="howto_nav">Как играть</a></nav>
     <button class="tvbtn" type="button" data-tv aria-pressed="false" title="Крупный режим для телевизора">ТВ</button>
   </header>
   <div class="tape" aria-hidden="true"><span>Место преступления · не пересекать · Улика · Место преступления · не пересекать · Улика · Место преступления · не пересекать · Улика ·</span></div>
@@ -57,7 +61,7 @@ export async function share(game, onDone) {
   const url = new URL(`game.html?id=${game.id}`, location.href).href;
   const text = `${game.title} — ${game.tagline}`;
   if (navigator.share) {
-    try { await navigator.share({ title: game.title, text, url }); await track(game.id, 'share'); onDone && onDone(); } catch (e) { /* отменили */ }
+    try { await navigator.share({ title: game.title, text, url }); goal('share'); await track(game.id, 'share'); onDone && onDone(); } catch (e) { /* отменили */ }
     return;
   }
   openShareSheet(game, url, text, onDone);
@@ -78,7 +82,7 @@ function openShareSheet(game, url, text, onDone) {
     <input class="share-url" value="${esc(url)}" readonly aria-label="Ссылка на игру">
     <button class="btn ghost" data-close>Закрыть</button></div>`;
   document.body.appendChild(el);
-  const done = async () => { await track(game.id, 'share'); onDone && onDone(); };
+  const done = async () => { goal('share'); await track(game.id, 'share'); onDone && onDone(); };
   el.addEventListener('click', async e => {
     if (e.target === el || e.target.closest('[data-close]')) { el.remove(); return; }
     if (e.target.closest('[data-sh]')) { done(); setTimeout(() => el.remove(), 300); }

@@ -1,7 +1,7 @@
 // Service worker «Призрака Огнеборода»: игру можно установить как приложение,
 // а картинки, шрифты и код хранятся на устройстве — повторный запуск мгновенный.
 // Файл собирается командой: python3 tools/build_sw.py
-const VERSION = 'a09f70abc9';
+const VERSION = 'f2890344a4';
 const CACHE = 'ognebord-v2-' + VERSION;
 const FILES = [
  "./",

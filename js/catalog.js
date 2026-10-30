@@ -1,7 +1,7 @@
 // Главная: витрина, подборки, поиск и фильтр по темам.
 import { GAMES, THEMES, COLLECTIONS, playersLabel } from './data.js';
 import { stats } from './api.js';
-import { frame, esc, num, plural, ICON, stars, share, ready } from './ui.js';
+import { frame, esc, num, plural, ICON, stars, share, ready, goal } from './ui.js';
 import { setupApp, install, onInstalled, installAllowed, installLabel } from './install.js';
 
 frame('all');
@@ -70,10 +70,10 @@ function renderFeature() {
         <span title="Просмотры">${ICON.eye}${num(s.views || 0)}</span><span title="Поделились">${ICON.share}${num(s.shares || 0)}</span>${g.app ? `<span title="Установили на ПК">${ICON.download}${num(s.installs || 0)}</span>` : ''}
       </div>
       <div class="row">
-        <a class="btn big" href="game.html?id=${g.id}">Подробнее</a>
-        <a class="btn ghost big" href="${g.playUrl}">${ICON.play}Играть</a>
+        <a class="btn big" href="game.html?id=${g.id}" data-goal="game_open">Подробнее</a>
+        <a class="btn ghost big" href="${g.playUrl}" data-goal="play_click">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
-        ${installAllowed(g) ? `<button class="btn ghost big" data-install>${ICON.download}${installLabel()}</button>` : ''}
+        ${installAllowed(g) ? `<button class="btn ghost big" data-install data-goal="install_click">${ICON.download}${installLabel()}</button>` : ''}
       </div>
     </div>
   </article>`;
@@ -161,7 +161,8 @@ if (state.q || state.theme || state.coll) document.getElementById('all').scrollI
     if (open) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     else document.getElementById('how').scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-  more.addEventListener('click', () => set(box.hidden));
+  more.addEventListener('click', () => { if (box.hidden) goal('howto_more'); set(box.hidden); });
+  v.addEventListener('play', () => goal('howto_video'), { once: true });
   less.addEventListener('click', () => set(false));
   if (location.hash === '#how-details') set(true);
 })();

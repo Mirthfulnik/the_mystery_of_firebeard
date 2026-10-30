@@ -1,7 +1,7 @@
 // Карточка игры: трейлер и скриншоты, тизер, оценки, сюжет, правила, комментарии.
 import { GAMES, byId, playersLabel } from './data.js';
 import { stats, track, myRating, rate, comments, addComment } from './api.js';
-import { frame, esc, num, plural, ICON, stars, share, ready } from './ui.js';
+import { frame, esc, num, plural, ICON, stars, share, ready, goal } from './ui.js';
 import { setupApp, install, onInstalled, installAllowed, installLabel, installHint } from './install.js';
 
 frame('');
@@ -49,9 +49,9 @@ function render() {
         <dt>Темы</dt><dd>${g.themes.map(t => `<a class="chip" style="font-size:.78rem;margin:0 4px 4px 0" href="index.html?theme=${encodeURIComponent(t)}#all">${esc(t)}</a>`).join('')}</dd>
       </dl>
       <div class="actions">
-        <a class="btn big" href="${g.playUrl}">${ICON.play}Играть</a>
+        <a class="btn big" href="${g.playUrl}" data-goal="play_click">${ICON.play}Играть</a>
         <button class="btn ghost big" data-share>${ICON.share}Поделиться</button>
-        ${installAllowed(g) ? `<button class="btn ghost big" data-install>${ICON.download}${installLabel()}</button>` : ''}
+        ${installAllowed(g) ? `<button class="btn ghost big" data-install data-goal="install_click">${ICON.download}${installLabel()}</button>` : ''}
       </div>
       ${installAllowed(g) ? `<p class="hint-small" data-install-hint>${installHint()}</p>` : ''}
     </aside>
@@ -107,7 +107,7 @@ function render() {
   const show = i => {
     const m = media[i];
     viewer.innerHTML = m.video
-      ? `<video src="${m.src}" poster="${m.thumb}" controls playsinline preload="metadata" aria-label="Трейлер игры"></video>`
+      ? `<video src="${m.src}" poster="${m.thumb}" onplay="window.ym&&ym(113916917,'reachGoal','trailer_play')" controls playsinline preload="metadata" aria-label="Трейлер игры"></video>`
       : `<div class="vbg" style="background-image:url('${m.thumb}')"></div><img class="main" src="${m.src}" alt="${esc(m.alt)}"><div class="cap">${esc(m.alt)}</div>`;
     page.querySelectorAll('.thumb').forEach(t => t.setAttribute('aria-current', String(+t.dataset.i === i)));
   };
@@ -149,7 +149,7 @@ function render() {
     const b = e.target.closest('button'); if (!b) return;
     mine = +b.dataset.n; paint(mine);
     const msg = document.getElementById('rmsg');
-    try { await rate(g.id, mine); msg.textContent = `Спасибо! Ваша оценка: ${mine} из 5`; refreshStats(); }
+    try { await rate(g.id, mine); goal('rate', { stars: mine }); msg.textContent = `Спасибо! Ваша оценка: ${mine} из 5`; refreshStats(); }
     catch (er) { msg.textContent = 'Не удалось сохранить оценку, попробуйте ещё раз'; }
   });
 
@@ -164,6 +164,7 @@ function render() {
     const btn = f.querySelector('button'); btn.disabled = true; err.textContent = '';
     try {
       await addComment(g.id, name, body);
+      goal('comment');
       try { localStorage.setItem('ulika.name', name); } catch (e2) { /* ignore */ }
       f.body.value = '';
       await loadComments(); refreshStats();
