@@ -19,7 +19,7 @@ let screen = room && secret ? 'join' : 'nolink';
 let seats = [];
 let tab = 'card';
 let opened = store.get('opened', {});
-let seen = store.get('seen', {});
+let seen = store.get('seen.' + room, {});   // найденные улики — свои для каждой игры
 let notes = store.get('notes.' + room, '');
 let zoneSel = null;
 let sheet = null;
@@ -28,6 +28,18 @@ let voteDraft = {};
 let lastSig = {};
 const newTabs = {};
 let joined = false;
+const reported = new Set();   // улики, о которых уже сообщили экрану
+
+// Сообщаем экрану, какие улики игрок уже открыл (ведущий видит, что найдено)
+function syncSeen() {
+  if (!view || !view.zones || !ch) return;
+  const list = [];
+  for (const z of view.zones) for (const it of z.items) {
+    const k = z.id + '|' + it.id;
+    if (!reported.has(k) && seen[z.id + '.' + it.id + (it.img || '')]) { list.push([z.id, it.id]); reported.add(k); }
+  }
+  if (list.length) send({ t: 'seen', list });
+}
 
 // ---------- Связь ----------
 function connect() {
@@ -35,7 +47,7 @@ function connect() {
   ch = new Channel({
     room, secret, broker, mine: key,
     onStatus: s => { netState = s; renderBar(); },
-    onConnect: () => { if (joined) send({ t: 'hello', name }); },
+    onConnect: () => { reported.clear(); if (joined) send({ t: 'hello', name }); },
     onMsg,
   });
   setInterval(() => { if (joined) send({ t: 'ping', rev: view ? view.rev : 0 }); }, 5000);
@@ -48,6 +60,7 @@ function onMsg(m) {
     view = m.v; viewAt = Date.now(); screen = 'game'; joined = true;
     notice(prev, view);
     render();
+    syncSeen();
   } else if (m.t === 'seats') { seats = m.seats; screen = 'seats'; render(); clearTimeout(onMsg.rt); if (!seats.length) onMsg.rt = setTimeout(() => send({ t: 'hello', name }), 5000); }
   else if (m.t === 'full') { screen = 'full'; render(); }
   else if (m.t === 'kicked') { screen = 'kicked'; view = null; joined = false; render(); }
@@ -186,7 +199,7 @@ function cardTabHTML() {
   const cards = v.cards || [];
   let top = '';
   (v.whispers || []).forEach(w => { top += `<div class="banner whisper"><b>Тайное сообщение</b>${esc(w.text)}</div>`; });
-  if (ph === 'roles' || ph === 'cast') return roleHTML(true);
+  if (ph === 'roles' || ph === 'host' || ph === 'cast') return roleHTML(true);
   if (ph === 'vote') return top + voteHTML();
   if (['votes', 'verdict', 'epi', 'scores'].includes(ph)) return v.result ? resultHTML() : `<div class="msg"><h2>Голоса подсчитаны</h2><p>Смотрите на экран.</p></div>`;
   if (ph === 'r-cards') {
@@ -321,7 +334,7 @@ document.addEventListener('click', e => {
   if (ds.item) {
     const z = (view.zones || []).find(zz => zz.id === zoneSel);
     const it = z && z.items.find(i => i.id === ds.item);
-    if (it) { seen[z.id + '.' + it.id + (it.img || '')] = true; store.set('seen', seen); if (it.sfx) audio.sfx(it.sfx, { gain: 0.7 }); }
+    if (it) { seen[z.id + '.' + it.id + (it.img || '')] = true; store.set('seen.' + room, seen); syncSeen(); if (it.sfx) audio.sfx(it.sfx, { gain: 0.7 }); }
     sheet = { type: 'item', zone: zoneSel, item: ds.item };
     render();
     return;

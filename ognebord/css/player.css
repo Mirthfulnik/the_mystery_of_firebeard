@@ -240,3 +240,25 @@ body.gmmode main { padding-bottom: 190px; }
 .plist span { color: var(--muted); font-size: 14px; }
 
 .plist .ib { background: none; border: 1px solid rgba(233, 230, 245, .3); color: var(--text); border-radius: 16px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
+
+/* ---------- Ведущий: памятка и осмотр ---------- */
+.memo { padding: 16px 18px; margin-bottom: 14px; }
+.memo h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; }
+.memo ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.memo .say { margin: 0; font-size: 19px; line-height: 1.45; font-style: italic; }
+.gmhot { position: absolute; transform: translate(-50%, -50%); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font: 700 13px/1 system-ui, sans-serif; color: #fff; min-width: 22px; pointer-events: none; }
+.gmhot.found { border: 3px solid #4cd964; background: rgba(76, 217, 100, .25); }
+.gmhot.missed { border: 3px dashed #ff6b6b; background: rgba(255, 107, 107, .18); }
+.lg { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; }
+.lg.found { background: #4cd964; } .lg.missed { border: 2px dashed #ff6b6b; }
+.gmitems { display: grid; gap: 8px; margin-top: 12px; }
+.gmitem { border: 1px solid rgba(233, 230, 245, .18); border-left: 5px solid #ff6b6b; border-radius: 10px; padding: 10px 12px; background: rgba(233, 230, 245, .04); }
+.gmitem.found { border-left-color: #4cd964; }
+.gmitem summary { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; list-style: none; }
+.gmitem summary::-webkit-details-marker { display: none; }
+.gmitem .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: rgba(233, 230, 245, .15); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.gmitem .t { display: grid; gap: 2px; }
+.gmitem small { color: var(--muted); }
+.gmitem.found small { color: #8ee99f; }
+.gmitem p { margin: 10px 0 0; font-size: 15px; line-height: 1.45; }
+.gmitem .evimg { margin-top: 10px; }

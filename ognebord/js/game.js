@@ -14,6 +14,7 @@ export function buildSteps() {
   const s = [];
   s.push({ id: 'lobby' });
   s.push({ id: 'roles' });
+  s.push({ id: 'host' });          // ведущий представляется
   for (let i = 0; i < CAST.length + ROLE_IDS.length; i++) s.push({ id: 'cast', i });
   PROLOGUE.forEach((_, i) => s.push({ id: 'prologue', i }));
   s.push({ id: 'inspect', zones: ['deck', 'cabin'], timer: TIMERS.inspect });
@@ -52,7 +53,7 @@ export function newCode() {
 
 export function newState(extra = {}) {
   return {
-    v: 2,
+    v: 3,
     code: newCode(),
     players: [],      // {key, name, role}
     gmKey: null,      // телефон ведущего
@@ -61,11 +62,19 @@ export function newState(extra = {}) {
     told: {},         // role -> true в текущем шаге рассказов
     decisions: {},
     votes: {},        // key -> {suspect: role, method, motive}
+    found: {},        // 'зона|улика' -> [роли игроков, которые её нашли]
     timer: null,
     rev: 1,
     created: Date.now(),
     ...extra,
   };
+}
+
+// Сохранения прошлой версии: в v3 после раздачи ролей добавлен шаг «Ведущий».
+export function migrate(s) {
+  if (s && s.v === 2) { if (s.step >= 2) s.step++; s.v = 3; }
+  if (s && !s.found) s.found = {};
+  return s;
 }
 
 export function owner(state, role) { return state.players.find(p => p.role === role) || null; }
@@ -194,6 +203,22 @@ export function zoneView(state, zid) {
   };
 }
 
+// Игрок открыл улику в «Осмотре» — запоминаем, чтобы ведущий видел, что найдено.
+export function markSeen(state, key, list) {
+  const p = state.players.find(pp => pp.key === key);
+  if (!p || !p.role || !Array.isArray(list)) return false;
+  const open = zonesOpen(state);
+  let changed = false;
+  for (const [zid, iid] of list.slice(0, 80)) {
+    if (!open.includes(zid)) continue;
+    if (!zoneView(state, zid).items.some(it => it.id === iid)) continue;
+    const k = zid + '|' + iid;
+    const arr = state.found[k] || (state.found[k] = []);
+    if (!arr.includes(p.role)) { arr.push(p.role); changed = true; }
+  }
+  return changed;
+}
+
 // ---------- Решения ----------
 export function decisionOpen(state, d) {
   const D = DECISIONS[d];
@@ -305,7 +330,8 @@ export function narrative(state) {
   const who = role => { const p = owner(state, role); return p ? `Играет ${p.name}` : 'Читает ведущий'; };
   switch (s.id) {
     case 'lobby': return { title: 'Поднимайтесь на борт', text: 'Игроки наводят камеру телефона на QR-код и вводят имя. Играть можно из любой сети и даже из другого города — ссылку можно переслать в мессенджере.', hint: 'Сколько бы игроков ни пришло, в игре будут все пять персонажей: свободные роли читает ведущий.' };
-    case 'roles': return { title: 'Роли розданы', text: 'Посмотрите в телефон, кем вы будете этой ночью. Никому не показывайте экран.' };
+    case 'roles': return { title: 'Роли розданы', text: 'Посмотрите в телефон, кем вы будете этой ночью. Никому не показывайте экран.', hint: 'Ведущий тем временем читает свою памятку на телефоне.' };
+    case 'host': return { kicker: 'Знакомство', title: 'Ведущий вечера', text: 'Ведущий рассказывает историю, следит за временем и говорит за гостей, которым не хватило игроков. Кто виновен — он не подсказывает: разбираться вам.', hint: 'Ведущий представляется и называет своё имя.' };
     case 'cast': {
       if (s.i < CAST.length) { const c = CAST[s.i]; return { kicker: c.tag, title: c.name, text: c.text }; }
       const role = ROLE_IDS[s.i - CAST.length];
@@ -363,7 +389,7 @@ export function narrative(state) {
 export function stepLabel(state) {
   const s = cur(state);
   const L = {
-    lobby: 'Сбор гостей', roles: 'Раздача ролей', cast: 'Знакомство', prologue: 'Пролог', inspect: s.zone ? (s.m ? 'Полночь: осмотр' : `Раунд ${s.r}: осмотр`) : 'Осмотр',
+    lobby: 'Сбор гостей', roles: 'Раздача ролей', host: 'Ведущий', cast: 'Знакомство', prologue: 'Пролог', inspect: s.zone ? (s.m ? 'Полночь: осмотр' : `Раунд ${s.r}: осмотр`) : 'Осмотр',
     'r-intro': `Раунд ${s.r}: вступление`, 'r-cards': `Раунд ${s.r}: рассказы`, 'r-discuss': `Раунд ${s.r}: обсуждение`,
     'm-intro': 'Полночь', 'm-cards': 'Полночь: карточки', 'm-discuss': 'Полночь: обсуждение',
     vote: 'Голосование', votes: 'Голоса', verdict: 'Вердикт', epi: 'Эпилог', scores: 'Итоги',
@@ -446,6 +472,15 @@ export function viewForGM(state, online = () => false) {
     })) : [],
   };
   if (s.id === 'vote') v.votes = { done: Object.keys(state.votes).length, of: state.players.length };
+  // Места преступления: что игроки уже нашли, а что нет
+  if (state.step > 0) {
+    const nameOf = role => { const p = owner(state, role); return p ? p.name : ROLES[role].name; };
+    v.zones = zonesOpen(state).map(zid => {
+      const z = zoneView(state, zid);
+      return { ...z, items: z.items.map(it => ({ ...it, found: (state.found[zid + '|' + it.id] || []).map(nameOf) })) };
+    });
+    v.focusZone = s.zone || null;
+  }
   if (state.step >= idxOf('votes')) {
     const res = results(state);
     v.results = { solved: res.solved, tally: ROLE_IDS.map(r => ({ roleName: ROLES[r].name, n: res.tally[r] })), scores: res.scores.map(x => ({ name: x.name, roleName: ROLES[x.role].name, total: x.total })) };

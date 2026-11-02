@@ -21,6 +21,8 @@ const ONLINE_MS = 14000;
 const fmt = ms => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 const audio = new GameAudio();
+// Заранее записываем музыку в порядке, в котором она звучит в игре, — чтобы экран не подвисал
+audio.prerender(['MU-01', 'MU-02', 'MU-03', 'MU-05', 'MU-04', 'MU-06', 'MU-07', 'MU-08', 'MU-09']);
 let state = null;
 let ch = null;
 let netStatus = 'off';
@@ -34,7 +36,7 @@ function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 function loadSaved() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-    if (s && s.v === 2 && Date.now() - s.created < 1000 * 60 * 60 * 14) return s;
+    if (s && (s.v === 2 || s.v === 3) && Date.now() - s.created < 1000 * 60 * 60 * 14) return G.migrate(s);
   } catch (e) { /* ignore */ }
   return null;
 }
@@ -115,6 +117,10 @@ function onMsg(m) {
     case 'told':
       if (G.markTold(state, key)) changed();
       return;
+    case 'seen':
+      // Игрок открыл улики в «Осмотре» — ведущий увидит, что найдено
+      if (G.markSeen(state, key, m.list)) { state.rev++; save(); if (state.gmKey && online(state.gmKey)) sendView(state.gmKey); }
+      return;
     case 'ctl':
       if (isGm) control(m.a, m.arg);
       return;
@@ -159,7 +165,7 @@ function cue() {
   const s = G.cur(state);
   const M = id => audio.music(id);
   switch (s.id) {
-    case 'lobby': case 'roles': case 'cast': M('MU-01'); break;
+    case 'lobby': case 'roles': case 'host': case 'cast': M('MU-01'); break;
     case 'prologue':
       if (s.i === 2) {
         M(null);
@@ -335,6 +341,7 @@ function sceneFor(s = G.cur(state)) {
   switch (s.id) {
     case 'lobby': return ['UI-02', true];
     case 'roles': return ['UI-02', false];
+    case 'host': return ['BG-02', false];
     case 'cast': return ['BG-02', true];
     case 'prologue': return [PROLOGUE[s.i].bg, false];
     case 'inspect': return s.zone ? (s.m ? ['BG-07', true] : [ROUNDS[s.r - 1].bg, true]) : ['BG-07', true];

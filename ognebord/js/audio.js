@@ -16,6 +16,46 @@ export class GameAudio {
     this.muted = false;
     this.current = null;
     this.currentId = null;
+    this.buffers = {};      // заранее «записанная» музыка: id -> AudioBuffer
+    this.queue = [];        // что ещё записать
+    this.waiting = null;    // id, который попросили сыграть, пока он записывается
+    this.pending = new Set(); // ещё не записанные темы
+  }
+
+  // ---------- Предзагрузка музыки ----------
+  // Синтезировать музыку на лету тяжело для слабых телевизоров: экран подвисает.
+  // Поэтому каждую тему заранее, в фоне, «записываем» в буфер (OfflineAudioContext),
+  // а во время игры только проигрываем готовую запись.
+  prerender(order = MUSIC_IDS) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return;
+    this.queue = order.filter(id => TRACKS[id] && !this.buffers[id]);
+    this.pending = new Set(this.queue);
+    const next = async () => {
+      if (!this.queue.length) return;
+      const id = this.queue.shift();
+      if (!this.files[id] && !this.buffers[id]) {
+        try { this.buffers[id] = await renderTrack(OAC, id); } catch (e) { console.warn('music render', id, e); }
+        this.pending.delete(id);
+        if (this.waiting === id && this.currentId === id && this.ctx) { this.waiting = null; this.playBuffer(id, 1.2); }
+      }
+      setTimeout(next, 60);   // паузы между темами, чтобы не мешать анимации
+    };
+    setTimeout(next, 200);
+  }
+
+  playBuffer(id, fadeIn = 1.2) {
+    const ctx = this.ctx, buf = this.buffers[id], tr = TRACKS[id];
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0, ctx.currentTime);
+    out.gain.linearRampToValueAtTime(1, ctx.currentTime + fadeIn);
+    out.connect(this.musicBus);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = !!tr.loop;
+    src.connect(out);
+    src.start(ctx.currentTime + 0.05);
+    this.current = { id, out, src, buffered: true };
   }
 
   // Нужно вызвать из обработчика клика: браузеры не дают звуку играть без жеста.
@@ -77,6 +117,13 @@ export class GameAudio {
     this.stopMusic(1.6);
     this.currentId = id;
     if (!id) return;
+    if (!this.files[id] && this.buffers[id]) { this.playBuffer(id); return; }
+    if (!this.files[id] && this.pending.has(id)) {
+      // ещё не записана — ставим первой в очередь и включим, как только будет готова
+      if (this.queue.includes(id)) this.queue = [id, ...this.queue.filter(x => x !== id)];
+      this.waiting = id;
+      return;
+    }
     if (this.files[id]) {
       const el = new Audio(this.files[id]);
       el.loop = !['MU-08', 'MU-09'].includes(id);
@@ -134,6 +181,13 @@ export class GameAudio {
       f();
       return;
     }
+    if (c.buffered) {
+      const g = c.out.gain, now = this.ctx.currentTime;
+      g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(0, now + fade);
+      try { c.src.stop(now + fade + 0.1); } catch (e) { /* ignore */ }
+      setTimeout(() => c.out.disconnect(), fade * 1000 + 500);
+      return;
+    }
     c.stopped = true;
     clearInterval(c.timer);
     const g = c.out.gain;
@@ -180,9 +234,7 @@ export class GameAudio {
   }
 
   // набор инструментов, подключённых к выходу out
-  kit(out) {
-    const ctx = this.ctx;
-    const noise = this.noise;
+  kit(out, ctx = this.ctx, noise = this.noise) {
     const K = { ctx, out };
 
     K.env = (param, t, a, hold, r, peak = 1, base = 0.0001) => {
@@ -485,6 +537,38 @@ export class GameAudio {
 }
 
 // ---------- Вспомогательное ----------
+// «Запись» одной темы в буфер. Петля записывается с хвостом реверберации,
+// хвост подмешивается в начало — так стык петли не слышен.
+const RENDER_RATE = 32000;
+async function renderTrack(OAC, id) {
+  const tr = TRACKS[id];
+  const spb = 60 / tr.bpm, barDur = spb * (tr.beats || 4);
+  const body = tr.bars * barDur;
+  const tail = 4, endExtra = tr.loop ? 0 : 6;
+  const len = Math.ceil((body + endExtra + tail) * RENDER_RATE);
+  const octx = new OAC(1, len, RENDER_RATE);
+  const out = octx.createGain();
+  out.gain.value = tr.gain || 1;
+  out.connect(octx.destination);
+  const verb = octx.createConvolver();
+  verb.buffer = impulse(octx, 2.8, 2.6);
+  const send = octx.createGain();
+  send.gain.value = (tr.verb ?? 0.25) * 0.9;
+  out.connect(send).connect(verb).connect(octx.destination);
+  const K = GameAudio.prototype.kit.call({}, out, octx, noiseBuffer(octx, 3));
+  for (let b = 0; b < tr.bars; b++) tr.bar(K, 0.02 + b * barDur, b, spb, b);
+  if (!tr.loop && tr.end) tr.end(K, 0.02 + body, spb);
+  const rendered = await octx.startRendering();
+  const d = rendered.getChannelData(0);
+  if (!tr.loop) return rendered;
+  const n = Math.round(body * RENDER_RATE);
+  const loop = octx.createBuffer(1, n, RENDER_RATE);
+  const L = loop.getChannelData(0);
+  L.set(d.subarray(0, n));
+  for (let i = 0; i < d.length - n && i < n; i++) L[i] += d[n + i];
+  return loop;
+}
+
 function noiseBuffer(ctx, sec) {
   const b = ctx.createBuffer(1, ctx.sampleRate * sec, ctx.sampleRate);
   const d = b.getChannelData(0);

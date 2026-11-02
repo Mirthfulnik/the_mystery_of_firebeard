@@ -1,6 +1,6 @@
 // Телефон ведущего: пульт, текст каждого шага, свободные роли, игроки.
 import { Channel, queryKeep } from './net.js';
-import { esc, IMG, FACE, fmt, store, hashParams, envHTML, decisionHTML, confirmHTML, buzz, toast } from './ui.js';
+import { esc, IMG, FACE, fmt, store, hashParams, envHTML, decisionHTML, confirmHTML, evImgHTML, buzz, toast } from './ui.js';
 
 const $ = s => document.querySelector(s);
 const { room, secret, broker, gm } = hashParams();
@@ -16,6 +16,8 @@ let screen = room && secret && gm ? 'wait' : 'nolink';
 let opened = store.get('gmopened', {});
 let sheet = null;
 let npcSel = null;
+let zoneSel = null;
+let lastFound = -1;
 let lastDecN = 0;
 const newTabs = {};
 
@@ -38,6 +40,10 @@ function onMsg(m) {
     const decN = (view.npc || []).reduce((a, r) => a + r.decisions.filter(d => d.open && d.made === undefined).length + r.whispers.length, 0);
     if (decN > lastDecN) { newTabs.npc = true; buzz([120, 60, 120]); }
     lastDecN = decN;
+    const foundN = (view.zones || []).reduce((a, z) => a + z.items.filter(it => it.found.length).length, 0);
+    if (lastFound >= 0 && foundN > lastFound) newTabs.zones = true;
+    lastFound = foundN;
+    if (prev && prev.phase !== 'inspect' && view.phase === 'inspect' && view.focusZone) zoneSel = view.focusZone;
     if (prev && prev.step !== view.step) window.scrollTo(0, 0);
     render();
   } else if (m.t === 'denied') { screen = 'denied'; render(); }
@@ -64,7 +70,10 @@ function renderTabs() {
   if (screen !== 'game') { el.hidden = true; return; }
   el.hidden = false;
   const npcN = (view.npc || []).length;
-  const T = [['text', '☰', 'Текст'], ['npc', '☠', `Роли ведущего${npcN ? ' · ' + npcN : ''}`], ['players', '☺', 'Игроки']];
+  const zs = view.zones || [];
+  const all = zs.reduce((a, z) => a + z.items.length, 0);
+  const got = zs.reduce((a, z) => a + z.items.filter(it => it.found.length).length, 0);
+  const T = [['text', '☰', 'Текст'], ['npc', '☠', `Роли ведущего${npcN ? ' · ' + npcN : ''}`], ['zones', '⌕', `Осмотр${zs.length ? ` · ${got}/${all}` : ''}`], ['players', '☺', 'Игроки']];
   el.innerHTML = T.map(([id, i, l]) => `<button role="tab" aria-selected="${tab === id}" data-tab="${id}"><span class="i">${i}</span>${l}${newTabs[id] && tab !== id ? '<span class="new"></span>' : ''}</button>`).join('');
 }
 
@@ -92,6 +101,7 @@ function render() {
   else {
     if (tab === 'npc') m.innerHTML = npcHTML();
     else if (tab === 'players') m.innerHTML = playersHTML();
+    else if (tab === 'zones') m.innerHTML = zonesHTML();
     else m.innerHTML = textHTML();
   }
   newTabs[tab] = false;
@@ -108,6 +118,8 @@ function textHTML() {
       <button class="btn green wide" data-act="share">Отправить ссылку игрокам</button>
       <p class="small">Ссылку можно переслать в мессенджер: подключиться можно из любой сети.</p>`;
   }
+  if (v.phase === 'roles') extra = briefingHTML();
+  if (v.phase === 'host') extra = introHTML();
   if (v.speaker && v.speaker.npc) {
     const npc = (v.npc || []).find(r => r.role === v.speaker.role);
     const card = npc && npc.cards[npc.cards.length - 1];
@@ -121,7 +133,7 @@ function textHTML() {
     extra = `<div class="banner info"><b>${v.results.solved ? 'Дело раскрыто' : 'Дело не раскрыто'}</b>${v.results.tally.map(t => `${esc(t.roleName)}: ${t.n}`).join('<br>')}</div>`;
     if (v.phase === 'scores') extra += `<div class="banner"><b>Очки</b>${v.results.scores.map(s => `${esc(s.name)} (${esc(s.roleName)}): ${s.total}`).join('<br>')}</div>`;
   }
-  const first = v.speaker && v.speaker.npc ? extra : '';
+  const first = (v.speaker && v.speaker.npc) || v.phase === 'roles' || v.phase === 'host' ? extra : '';
   if (first) extra = '';
   return `${first}<article class="script">
     ${N.kicker ? `<div class="kicker">${esc(N.kicker)}</div>` : ''}
@@ -130,6 +142,48 @@ function textHTML() {
     ${N.hint ? `<p class="hint">${esc(N.hint)}</p>` : ''}
   </article>${extra}
   <p class="small step">Шаг ${v.step + 1} из ${v.total}</p>`;
+}
+
+// Памятка: что делает ведущий. Показывается, пока игроки читают свои роли.
+function briefingHTML() {
+  const npc = (view.npc || []).map(r => r.roleName);
+  return `<div class="banner turn"><b>Пока все читают свои роли — прочитайте свою</b>Вы — ведущий: рассказчик и пульт этой игры.</div>
+    <div class="parch memo"><h2>Памятка ведущего</h2><ol>
+      <li><b>Читайте вслух</b> текст в рамке на вкладке «Текст» — он же справа на экране. Прочитали — нажмите «Далее».</li>
+      <li><b>Свободные роли — ваши.</b> ${npc.length ? `Сегодня вы играете: ${npc.map(esc).join(', ')}. Их описания, карточки и решения — на вкладке «Роли ведущего».` : 'Сегодня все роли у игроков — читать за персонажей не нужно.'}</li>
+      <li><b>Держите темп.</b> В рассказах следите за очередью, в обсуждениях — за таймером: «Пауза» и «+1 мин» внизу.</li>
+      <li><b>Осмотр.</b> На вкладке «Осмотр» видно, какие улики игроки уже нашли, а какие нет. Если важное никто не нашёл — можно подсказать, куда посмотреть, но не что там.</li>
+      <li><b>Не выдавайте разгадку.</b> Кто виновен, не подсказывайте. Если виновный окажется среди ваших ролей — держите лицо.</li>
+      <li><b>Дальше — ваш выход.</b> На следующем шаге представьтесь гостям.</li>
+    </ol></div>`;
+}
+
+// Шаг «Ведущий вечера»: что сказать, представляясь
+function introHTML() {
+  const npc = (view.npc || []).map(r => r.roleName);
+  return `<div class="banner turn"><b>Представьтесь — скажите вслух</b>Своими словами или так:</div>
+    <div class="parch memo"><p class="say">«Добрый вечер, гости „Мелюзины“! Меня зовут <u>&nbsp;ваше имя&nbsp;</u>, и этой ночью я ваш ведущий. Я буду рассказывать историю и следить за временем${npc.length ? `, а ещё говорить за тех, кому не хватило игроков: ${npc.map(esc).join(', ')}` : ''}. Кто виновен, я не подскажу — разбираться вам. Итак, знакомьтесь…»</p></div>`;
+}
+
+// Места преступления: что игроки уже нашли, а что нет
+function zonesHTML() {
+  const zs = view.zones || [];
+  if (!zs.length) return `<div class="msg"><h2>Пока закрыто</h2><p>Места преступления откроются после пролога. Здесь будет видно, какие улики игроки уже нашли.</p></div>`;
+  if (!zoneSel || !zs.some(z => z.id === zoneSel)) zoneSel = view.focusZone && zs.some(z => z.id === view.focusZone) ? view.focusZone : zs[0].id;
+  const z = zs.find(zz => zz.id === zoneSel);
+  const chips = zs.map(zz => {
+    const n = zz.items.filter(it => it.found.length).length;
+    return `<button aria-pressed="${zz.id === zoneSel}" data-zone="${zz.id}">${esc(zz.name)} · ${n}/${zz.items.length}</button>`;
+  }).join('');
+  const hots = z.items.map((it, i) => `<span class="gmhot ${it.found.length ? 'found' : 'missed'}" style="left:${it.x}%;top:${it.y}%;width:${it.r * 2}%">${i + 1}</span>`).join('');
+  const found = z.items.filter(it => it.found.length).length;
+  const list = z.items.map((it, i) => `<details class="gmitem ${it.found.length ? 'found' : 'missed'}"><summary><span class="n">${i + 1}</span><span class="t"><b>${esc(it.name)}</b>
+      <small>${it.found.length ? 'Нашли: ' + it.found.map(esc).join(', ') : 'Пока никто не нашёл'}</small></span></summary>
+      ${it.img ? evImgHTML(it.img, it.note) : ''}<p>${esc(it.text)}</p></details>`).join('');
+  return `<div class="chips" role="group" aria-label="Места">${chips}</div>
+    <div class="scene">${'<img src="' + IMG(z.img) + '" alt="' + esc(z.name) + '">'}${hots}</div>
+    <p class="scene-hint">${found} из ${z.items.length} найдено. <span class="lg found"></span> нашли &nbsp; <span class="lg missed"></span> не нашли. Нажмите на улику в списке, чтобы прочитать её.</p>
+    <div class="gmitems">${list}</div>`;
 }
 
 function npcHTML() {
@@ -185,12 +239,13 @@ async function share() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-ctl],[data-act],[data-tab],[data-npc],[data-open],[data-close],[data-decide],[data-kick]');
+  const t = e.target.closest('[data-ctl],[data-act],[data-tab],[data-npc],[data-zone],[data-open],[data-close],[data-decide],[data-kick]');
   if (!t) return;
   const ds = t.dataset;
   if (ds.ctl) { ctl(ds.ctl); return; }
   if (ds.tab) { tab = ds.tab; render(); window.scrollTo(0, 0); return; }
   if (ds.npc) { npcSel = ds.npc; render(); return; }
+  if (ds.zone) { zoneSel = ds.zone; render(); return; }
   if (ds.open) { opened[ds.open] = true; store.set('gmopened', opened); render(); return; }
   if (ds.close) { delete opened[ds.close]; store.set('gmopened', opened); render(); return; }
   if (ds.decide) { sheet = { d: ds.decide, yes: ds.yes === '1' }; renderSheet(); return; }
