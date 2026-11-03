@@ -262,3 +262,16 @@ body.gmmode main { padding-bottom: 190px; }
 .gmitem.found small { color: #8ee99f; }
 .gmitem p { margin: 10px 0 0; font-size: 15px; line-height: 1.45; }
 .gmitem .evimg { margin-top: 10px; }
+
+/* ---------- Отзыв в конце игры ---------- */
+.fb { padding: 18px; margin: 16px 0 20px; display: grid; gap: 8px; }
+.fb h2 { margin: 0; font-family: var(--display); font-weight: 400; }
+.fb p { margin: 0 0 4px; }
+.fbstars { display: flex; gap: 6px; margin: 4px 0 8px; }
+.fbstar { flex: 1; font-size: 40px; line-height: 1; padding: 6px 0; border: 0; border-radius: 10px; background: rgba(0, 0, 0, .08); color: rgba(0, 0, 0, .25); cursor: pointer; }
+.fbstar.on { color: #e8a317; background: rgba(232, 163, 23, .15); }
+.fbl { font-size: 14px; opacity: .75; margin-top: 4px; }
+.fb input, .fb textarea { width: 100%; box-sizing: border-box; border: 1px solid rgba(0, 0, 0, .25); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 16px; background: rgba(255, 255, 255, .7); color: #1a1408; }
+.fb textarea { min-height: 96px; resize: vertical; }
+.fberr { color: #a3172a; font-weight: 600; }
+.fb .btn.wide { width: 100%; margin-top: 6px; text-align: center; text-decoration: none; display: block; }

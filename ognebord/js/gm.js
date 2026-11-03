@@ -1,6 +1,7 @@
 // Телефон ведущего: пульт, текст каждого шага, свободные роли, игроки.
 import { Channel, queryKeep } from './net.js';
 import { esc, IMG, FACE, fmt, store, hashParams, envHTML, decisionHTML, confirmHTML, evImgHTML, buzz, toast } from './ui.js';
+import { feedbackHTML, feedbackFocused, bindFeedback } from './feedback.js';
 
 const $ = s => document.querySelector(s);
 const { room, secret, broker, gm } = hashParams();
@@ -98,6 +99,7 @@ function render() {
   if (screen === 'nolink') m.innerHTML = `<div class="msg"><h2>Нужен код ведущего</h2><p>Отсканируйте маленький QR-код «для ведущего» на экране телевизора.</p></div>`;
   else if (screen === 'wait') m.innerHTML = `<div class="msg"><h2>Подключаемся к экрану…</h2><p>Если это длится дольше минуты, проверьте интернет и что игра открыта на телевизоре.</p></div>`;
   else if (screen === 'denied') m.innerHTML = `<div class="msg"><h2>Код устарел</h2><p>Этот код ведущего от другой игры. Отсканируйте код с экрана заново.</p></div>`;
+  else if (tab === 'text' && feedbackFocused()) { /* не мешать писать отзыв */ }
   else {
     if (tab === 'npc') m.innerHTML = npcHTML();
     else if (tab === 'players') m.innerHTML = playersHTML();
@@ -131,7 +133,7 @@ function textHTML() {
   if (v.votes) extra = `<div class="banner info"><b>Проголосовали ${v.votes.done} из ${v.votes.of}</b>Когда все проголосуют, нажмите «Далее».</div>`;
   if (v.results) {
     extra = `<div class="banner info"><b>${v.results.solved ? 'Дело раскрыто' : 'Дело не раскрыто'}</b>${v.results.tally.map(t => `${esc(t.roleName)}: ${t.n}`).join('<br>')}</div>`;
-    if (v.phase === 'scores') extra += `<div class="banner"><b>Очки</b>${v.results.scores.map(s => `${esc(s.name)} (${esc(s.roleName)}): ${s.total}`).join('<br>')}</div>`;
+    if (v.phase === 'scores') extra += `<div class="banner"><b>Очки</b>${v.results.scores.map(s => `${esc(s.name)} (${esc(s.roleName)}): ${s.total}`).join('<br>')}</div>` + feedbackHTML('Ведущий');
   }
   const first = (v.speaker && v.speaker.npc) || v.phase === 'roles' || v.phase === 'host' ? extra : '';
   if (first) extra = '';
@@ -265,6 +267,7 @@ setInterval(() => {
   if (el) { const l = timerLeft(); if (l != null) { el.textContent = fmt(l); el.classList.toggle('low', l < 30000); } }
 }, 500);
 
+bindFeedback(() => render());
 if (screen === 'wait') connect();
 render();
 window.__gm = { get view() { return view; } };

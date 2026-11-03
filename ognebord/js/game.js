@@ -380,7 +380,7 @@ export function narrative(state) {
     case 'scores': {
       const res = results(state);
       const w = res.scores.filter(x => res.winners.includes(x.key)).map(x => x.name).join(', ');
-      return { kicker: 'Итоги', title: w ? `Победитель: ${w}` : 'Итоги', text: 'Спасибо за игру! С Хэллоуином.' };
+      return { kicker: 'Итоги', title: w ? `Победитель: ${w}` : 'Итоги', text: 'Спасибо за игру! Оцените её в телефоне и напишите пару слов — отзыв появится на сайте «Улики».' };
     }
     default: return { title: s.id };
   }

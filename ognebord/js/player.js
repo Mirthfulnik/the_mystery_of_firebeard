@@ -2,6 +2,7 @@
 import { Channel } from './net.js';
 import { GameAudio } from './audio.js';
 import { esc, IMG, FACE, fmt, store, hashParams, envHTML, decisionHTML, confirmHTML, evImgHTML, buzz, toast } from './ui.js';
+import { feedbackHTML, feedbackFocused, bindFeedback } from './feedback.js';
 
 const $ = s => document.querySelector(s);
 const { room, secret, broker } = hashParams();
@@ -137,6 +138,7 @@ function render() {
   else if (screen === 'kicked') m.innerHTML = `<div class="msg"><h2>Вас убрали из списка</h2><p>Чтобы вернуться, обновите страницу.</p></div>`;
   else if (view) {
     if (tab === 'notes' && document.getElementById('notes')) { /* не перерисовывать блокнот, пока в нём пишут */ }
+    else if (feedbackFocused()) { /* не мешать писать отзыв */ }
     else m.innerHTML = gameHTML();
   }
   newTabs[tab] = false;
@@ -262,8 +264,9 @@ function resultHTML() {
     <h2>${r.winner ? 'Вы победили!' : `Ваше место: ${r.place}`}</h2>
     <div class="pts">${me.total}</div><div class="small">очков</div>
     <ul>${me.lines.map(l => `<li><span>${esc(l.label)}</span><b>${l.pts > 0 ? '+' : ''}${l.pts}</b></li>`).join('') || '<li><span>Очков нет</span><b>0</b></li>'}</ul>
-    <p class="small">Спасибо за игру! С Хэллоуином.</p></div>`;
+    <p class="small">Спасибо за игру!</p></div>${feedbackHTML(view.me && view.me.name)}`;
 }
+bindFeedback(() => render());
 
 function renderSheet() {
   const el = $('#sheet');
